@@ -63,3 +63,6 @@ Add one object to `data/projects.json` with `id`, `name`, `one_liner`, `status`,
 - Tool and app logos belong to their owners and are shown only to name the tools I use.
 
 © 2026 Joemark Basa. All rights reserved. Please do not copy the portrait, the personal text, or the character art.
+
+## SEO files and auto-update
+`llms.txt`, `sitemap.xml`, `robots.txt`, `manifest.webmanifest` and the `<noscript>` project list help search and AI engines read the site. When `data/projects.json` changes, run `node tools/update-seo.js` (a local git pre-commit hook does it automatically) to refresh the project list, sitemap date and noscript block. The share image is `assets/og.png`.
