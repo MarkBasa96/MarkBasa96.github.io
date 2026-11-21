@@ -1,0 +1,14 @@
+{
+  "name": "Joemark Basa — AI Automation Specialist",
+  "short_name": "Joemark Basa",
+  "description": "Workflows that run themselves, so your team stops copy-pasting.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f2ee",
+  "theme_color": "#ff6d3f",
+  "icons": [
+    { "src": "assets/icons/face-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/face-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,36 @@
+# Joemark Basa
+
+> AI automation specialist and technical virtual assistant in Davao City, Philippines. He builds workflows that run themselves, so teams stop copy-pasting. Open to part-time and project work.
+
+Imagine your Monday without the copy-pasting. Your inbox sorts itself, your tracker updates on its own, and the right person gets pinged at the right moment. Joemark builds the automations behind that, tests them until they break, and leaves a simple guide (SOP) so your team can run them without him.
+
+## Facts
+- 5+ years of remote operations and support
+- 20+ workflow automations shipped
+- An AI email workflow took a priority email from 20 minutes to about 3
+- Tools: n8n (self-hosted), Power Automate, Make, Zapier, Claude Code, Claude, ChatGPT, Gemini, Microsoft 365, Google Workspace, Asana, Airtable
+- Core skills: Team Leadership, Workflow Automation, AI-Assisted Workflows, Prompt Engineering, Quality Assurance, Customer Support, Project Coordination, Administrative Support, E-Learning
+- Based in Davao City, Philippines (UTC+8), works remotely with any timezone
+- The photos and clips on the site are AI-generated from his likeness
+
+## How he works
+Every job goes through the same five steps: map the process, build the smallest working version in n8n or Power Automate, test it until it breaks, then hand it over with a written SOP.
+
+## Live projects
+- [Gastos](https://gastos-six-phi.vercel.app): Phone expense tracker for the Philippines (cash, cards, GCash, Maya), offline, with sync.
+- [Patas](https://patas-fawn.vercel.app): Free debt and installment tracker: who you owe, what's left, what's due.
+- [Demi Plank](https://demi-plank.vercel.app): Offline plank coach with a voice that explains every move, endless levels.
+- [GoniLift](https://markbasa96.github.io/gonilift/): Free offline AI vocal remover for Windows; karaoke, key change, loop.
+- [Automation Roadmap](https://automation-roadmap-nine.vercel.app): 12-week interactive path from VA to AI automation specialist, with a study-buddy cat game.
+- [Jarvis AI Brain](https://github.com/MarkBasa96/jarvis-ai-brain): Obsidian second brain plus a hands-free voice assistant for Claude Code.
+- [Ask Her Out](https://ask-her-out-orpin-psi.vercel.app): Playful page that asks someone on a date; the No button never gives up.
+
+## Hire him
+- Book a 30-minute intro call (Google Meet): https://calendar.google.com/calendar/appointments/schedules/AcZssZ0wBgkxoKQ36u0OIhRdIko0jJ1gWZiaR3CDmHuc2I2jw6BOSonihBfe0wbSD_92n2d9pPkH1HA7
+- Email: joemarkloarbasa96@gmail.com (usually replies within a day, Manila time)
+- LinkedIn: https://www.linkedin.com/in/joemark-basa/
+- GitHub: https://github.com/MarkBasa96
+
+## Site
+- Home: https://markbasa96.github.io/
+- Sections (tabs on the home page): Work, How I work, Second brain, Experience, Toolbox, Team, Contact
