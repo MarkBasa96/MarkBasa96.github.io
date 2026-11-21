@@ -1,0 +1,297 @@
+{
+  "last_updated": "2026-11-21",
+  "projects": [
+    {
+      "id": "gastos",
+      "name": "Gastos",
+      "icon": "wallet",
+      "group": "apps",
+      "one_liner": "Phone expense tracker for the Philippines (cash, cards, GCash, Maya), offline, with sync.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://gastos-six-phi.vercel.app",
+      "repo": "MarkBasa96/gastos",
+      "tags": [
+        "Expo",
+        "Supabase",
+        "Offline"
+      ],
+      "details": "A phone-first expense tracker built for how money moves in the Philippines: cash, cards, GCash and Maya. It works offline and syncs when you are back online. Built with Expo and Supabase.",
+      "featured": true,
+      "spotlight": true,
+      "updated": "2026-09",
+      "icon_img": "assets/apps/gastos.png"
+    },
+    {
+      "id": "patas",
+      "name": "Patas",
+      "icon": "list",
+      "group": "apps",
+      "one_liner": "Free debt and installment tracker: who you owe, what's left, what's due.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://patas-fawn.vercel.app",
+      "repo": "MarkBasa96/patas",
+      "tags": [
+        "Free",
+        "Open source"
+      ],
+      "details": "A free tracker for debts and installments. It shows who you owe, how much is left and what is due next, so nothing gets forgotten.",
+      "featured": true,
+      "updated": "2026-10",
+      "icon_img": "assets/apps/patas.png",
+      "recognition": {
+        "label": "Selected · XERJ Corpus Hub",
+        "url": "https://hub.xerj.org/contributors/MarkBasa96",
+        "text": "Selected for the XERJ Corpus Hub (Oct 2026). A 6,499-line commit picked as a worked example that AI coding agents look up before writing their own code, credited to me."
+      }
+    },
+    {
+      "id": "demi-plank",
+      "name": "Demi Plank",
+      "icon": "timer",
+      "group": "apps",
+      "one_liner": "Offline plank coach with a voice that explains every move, endless levels.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://demi-plank.vercel.app",
+      "repo": "MarkBasa96/demi-plank",
+      "tags": [
+        "Offline",
+        "Web app",
+        "Android"
+      ],
+      "details": "An offline plank-workout coach for the phone. A voice explains every move and the levels keep going. It runs as a web app and as an Android wrapper.",
+      "featured": true,
+      "updated": "2026-11",
+      "icon_img": "assets/apps/demi-plank.png"
+    },
+    {
+      "id": "gonilift",
+      "name": "GoniLift",
+      "icon": "wave",
+      "group": "ai",
+      "one_liner": "Free offline AI vocal remover for Windows; karaoke, key change, loop.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://markbasa96.github.io/gonilift/",
+      "repo": "MarkBasa96/gonilift",
+      "tags": [
+        "Windows",
+        "Offline",
+        "AI"
+      ],
+      "details": "Splits a song into vocals and a backing track on your own PC, with no upload. Built for singing practice: karaoke, key change, slow-down and loop.",
+      "featured": true,
+      "updated": "2026-10",
+      "icon_img": "assets/apps/gonilift.png",
+      "recognition": {
+        "label": "Selected · XERJ Corpus Hub",
+        "url": "https://hub.xerj.org/contributors/MarkBasa96",
+        "text": "Added to the XERJ Corpus Hub (Oct 2026), the open reference library AI coding agents search before writing code, credited to me."
+      }
+    },
+    {
+      "id": "automation-roadmap",
+      "name": "Automation Roadmap",
+      "icon": "route",
+      "group": "automation",
+      "one_liner": "12-week interactive path from VA to AI automation specialist, with a study-buddy cat game.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://automation-roadmap-nine.vercel.app",
+      "repo": "MarkBasa96/automation-roadmap",
+      "tags": [
+        "Learning",
+        "Plain JS",
+        "Game"
+      ],
+      "details": "An interactive learning roadmap for going from technical virtual assistant to AI automation specialist. It runs over 12 weeks and includes a study-buddy cat game, the one you can play further down this page.",
+      "featured": true,
+      "updated": "2026-09",
+      "icon_img": "assets/apps/automation-roadmap.png"
+    },
+    {
+      "id": "jarvis-ai-brain",
+      "name": "Jarvis AI Brain",
+      "icon": "brain",
+      "group": "ai",
+      "one_liner": "Obsidian second brain plus a hands-free voice assistant for Claude Code.",
+      "status": "live",
+      "status_label": "Public repo",
+      "visibility": "public",
+      "url": "https://github.com/MarkBasa96/jarvis-ai-brain",
+      "repo": "MarkBasa96/jarvis-ai-brain",
+      "tags": [
+        "Obsidian",
+        "Claude Code",
+        "Voice"
+      ],
+      "details": "An Obsidian second-brain vault together with a hands-free voice assistant for Claude Code. It listens for a wake word, transcribes with Whisper and streams replies back.",
+      "featured": true,
+      "updated": "2026-09"
+    },
+    {
+      "id": "ask-her-out",
+      "name": "Ask Her Out",
+      "icon": "heart",
+      "group": "apps",
+      "one_liner": "Playful page that asks someone on a date; the No button never gives up.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://ask-her-out-orpin-psi.vercel.app",
+      "repo": "MarkBasa96/ask-her-out",
+      "tags": [
+        "Fun",
+        "Web page"
+      ],
+      "details": "A small playful page that asks someone on a date. The No button never gives up.",
+      "featured": true,
+      "updated": "2026-09",
+      "icon_img": "assets/apps/ask-her-out.png"
+    },
+    {
+      "id": "video-autopost",
+      "name": "Video Autopost",
+      "icon": "send",
+      "group": "automation",
+      "one_liner": "Drop a video, approve on Telegram, it posts to Facebook, Instagram, YouTube and TikTok.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "n8n",
+        "Telegram",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    },
+    {
+      "id": "jarvis-telegram",
+      "name": "Jarvis on Telegram",
+      "icon": "chat",
+      "group": "automation",
+      "one_liner": "Personal assistant: inbox tidy, reminders, file fetch, alerts.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "n8n",
+        "Telegram",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    },
+    {
+      "id": "page-autopilot",
+      "name": "Page Autopilot",
+      "icon": "bot",
+      "group": "automation",
+      "one_liner": "AI sales assistant for a Facebook shop page.",
+      "status": "demo",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "n8n",
+        "AI",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    },
+    {
+      "id": "kimgenious",
+      "name": "KimGenious",
+      "icon": "quiz",
+      "group": "apps",
+      "one_liner": "Classroom quiz and game maker built for a teacher, ten game modes.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Education",
+        "Private"
+      ],
+      "details": "",
+      "featured": false,
+      "icon_img": "assets/apps/kimgenious.png"
+    },
+    {
+      "id": "job-applier",
+      "name": "Job Applier",
+      "icon": "briefcase",
+      "group": "automation",
+      "one_liner": "Finds part-time roles, drafts applications, sends only what I approve.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "AI",
+        "Claude Code",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    },
+    {
+      "id": "office-dashboard",
+      "name": "Office Dashboard",
+      "icon": "grid",
+      "group": "ai",
+      "one_liner": "A pixel \"office\" showing my AI agent team at work.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "AI agents",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    },
+    {
+      "id": "wake-and-move",
+      "name": "Wake & Move",
+      "icon": "alarm",
+      "group": "apps",
+      "one_liner": "Alarm that only stops after you do the reps.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Mobile",
+        "Private"
+      ],
+      "details": "",
+      "featured": false,
+      "icon_img": "assets/apps/wake-and-move.png"
+    },
+    {
+      "id": "ai-drama",
+      "name": "AI Drama",
+      "icon": "film",
+      "group": "ai",
+      "one_liner": "Short AI-made Filipino drama series made with Google Flow.",
+      "status": "building",
+      "visibility": "private",
+      "url": "",
+      "repo": "",
+      "tags": [
+        "Video",
+        "Google Flow",
+        "Private"
+      ],
+      "details": "",
+      "featured": false
+    }
+  ]
+}

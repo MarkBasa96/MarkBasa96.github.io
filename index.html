@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Joemark Basa — AI Automation Specialist</title>
+<meta name="description" content="Joemark Basa is a technical virtual assistant and former team lead in Davao City, Philippines. He builds automations in n8n, Power Automate and Claude Code so teams stop copy-pasting and start shipping.">
+<link rel="canonical" href="https://markbasa96.github.io/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f2ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0e10" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Joemark Basa — AI Automation Specialist">
+<meta property="og:description" content="I turn repetitive work into workflows that run themselves. Technical VA and former team lead, Davao City, Philippines.">
+<meta property="og:url" content="https://markbasa96.github.io/">
+<meta property="og:image" content="https://markbasa96.github.io/assets/face/master.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/face-32.png">
+<link rel="apple-touch-icon" href="assets/icons/face-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<script>
+/* Apply a saved theme before first paint. Storage may throw (private window, sandbox): page works without it. */
+(function () {
+  try {
+    var t = localStorage.getItem('jb-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+
+<!-- Icon sprite: hand-written 24px stroke icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.6-4.6A8.5 8.5 0 1 1 8 19.6L3 21z"/><path d="M9 9.5c.5 2.5 2.5 4.5 5 5l1.2-1.2-2-1-.8.8c-.9-.4-1.7-1.2-2.1-2.1l.8-.8-1-2L9 9.5z"/></symbol>
+  <symbol id="i-linkedin" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10.5V16M8 7.6v.01M12 16v-5.5M12 13a2.8 2.8 0 0 1 5.6 0v3"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><circle cx="6" cy="5.5" r="2"/><circle cx="6" cy="18.5" r="2"/><circle cx="18" cy="8.5" r="2"/><path d="M6 7.5v9M18 10.5v.5a4 4 0 0 1-4 4h-3a5 5 0 0 0-5 3"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" style="fill:currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></symbol>
+  <symbol id="i-cat" viewBox="0 0 24 24"><path d="M5 4l3.2 3.5h7.6L19 4v8.5a7 7 0 0 1-14 0V4z"/><path d="M9 12h.01M15 12h.01M11 15l1 1 1-1"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h12v4M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2zM16 14h.01"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h2l2-6 3 12 3-9 2 5 2-2h4"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 5a3 3 0 0 0-5.7-1.3A3 3 0 0 0 4 9a3 3 0 0 0 .5 5A3.5 3.5 0 0 0 9 19a3 3 0 0 0 3 0V5zM12 5a3 3 0 0 1 5.7-1.3A3 3 0 0 1 20 9a3 3 0 0 1-.5 5A3.5 3.5 0 0 1 15 19a3 3 0 0 1-3 0"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 3 10l7 3 3 7 8-17zM10 13l11-10"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.1-4.2A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 14h.01M15 14h.01M2 14h2M20 14h2"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-alarm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M19 3l3 3"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" style="fill:currentColor"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></symbol>
+  <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M6 5v14M18 6v12l-9-6z" style="fill:none"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><path d="M18 5v14M6 6v12l9-6z" style="fill:none"/></symbol>
+  <symbol id="i-glyph" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zM17 9a4 4 0 0 1 0 6"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zM17 9l5 6M22 9l-5 6"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar glass" id="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <a class="monogram node io" href="#home" aria-label="Joemark Basa, home"><span>JB</span></a>
+      <span class="side-name">Joemark Basa<small class="mono">AI automation</small></span>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-sound" type="button" aria-label="Turn sound off" aria-pressed="false" title="Sound on"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg></button>
+      <button class="icon-btn" id="btn-theme" type="button" aria-label="Switch to dark theme" title="Switch theme">
+        <svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        <svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-cmd" id="btn-cmdk" type="button" aria-label="Open command palette" aria-keyshortcuts="Control+K Meta+K">
+        <svg class="ic" aria-hidden="true"><use href="#i-cmd"/></svg><span class="kbd" id="cmdk-label">Ctrl K</span>
+      </button>
+    </div>
+    <nav class="toplinks" id="tabnav" aria-label="Pages">
+      <a href="#home" data-tab="home"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></a>
+      <a href="#work" data-tab="work"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg><span>Work</span></a>
+      <a href="#how" data-tab="how"><svg class="ic" aria-hidden="true"><use href="#i-route"/></svg><span>How I work</span></a>
+      <a href="#brain" data-tab="brain"><svg class="ic" aria-hidden="true"><use href="#i-brain"/></svg><span>Second brain</span></a>
+      <a href="#experience" data-tab="experience"><svg class="ic" aria-hidden="true"><use href="#i-briefcase"/></svg><span>Experience</span></a>
+      <a href="#toolbox" data-tab="toolbox"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg><span>Toolbox</span></a>
+      <a href="#team" data-tab="team"><svg class="ic" aria-hidden="true"><use href="#i-bot"/></svg><span>Team</span></a>
+      <a href="#contact" data-tab="contact"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg><span>Contact</span></a>
+      <i class="tl-sep" aria-hidden="true"></i>
+      <button type="button" class="tl-act" data-act="resume"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg><span>Résumé</span><svg class="ic ext" aria-hidden="true"><use href="#i-ext"/></svg></button>
+      <button type="button" class="tl-act" data-act="game"><svg class="ic" aria-hidden="true"><use href="#i-cat"/></svg><span>Cat game</span></button>
+    </nav>
+    <div class="side-foot">
+      <button class="btn btn-run side-run" id="btn-run-tab" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="run-tab-label">Run this page</span></button>
+      <p class="pill"><i class="dot live"></i><span>Open to part-time &amp; project work</span></p>
+      <p class="side-note">Work, collabs and everything else:</p>
+      <a class="side-mail mono" href="mailto:joemarkloarbasa96@gmail.com">joemarkloarbasa96@gmail.com</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <div class="tabpanel on" id="tab-home" data-tab="home" role="region" aria-label="Home">
+  <!-- 1. HERO / trigger node -->
+  <section class="hero wrap" id="top" aria-labelledby="h-name">
+    <div class="hero-copy">
+      <div class="hero-meta">
+        <p class="loc" id="p-loc">Davao City, Philippines</p>
+      </div>
+      <h1 id="h-name" data-step="Hi, I'm Joemark">Joemark Basa</h1>
+      <p class="headline" id="p-headline">I turn repetitive work into workflows that run themselves.</p>
+      <p class="sub" id="p-sub">Imagine your Monday without the copy-pasting. Your inbox sorts itself, your tracker updates on its own, and the right person gets pinged at the right moment. I build the automations behind that, test them until they break, and leave you a simple guide so your team can run them without me. You get your hours back, and the human side of the work stays in charge.</p>
+      <div class="skills-wrap" id="p-skills-wrap"><span class="skills-label mono">Core skills</span><ul class="skills" id="p-skills"><li>Team Leadership</li><li>Workflow Automation</li><li>AI-Assisted Workflows</li><li>Prompt Engineering</li><li>Quality Assurance</li><li>Customer Support</li><li>Project Coordination</li><li>Administrative Support</li><li>E-Learning</li></ul></div>
+      <div class="hero-actions">
+        <button class="btn btn-accent" type="button" data-act="book" data-smile>
+          <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Book a call
+        </button>
+        <a class="btn btn-line" href="#work">See my work<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      <ul class="stats" id="stats" aria-label="Highlights"></ul>
+      <div class="run-row">
+        <button class="btn btn-run" id="btn-run" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="run-label">Run workflow</span></button>
+        <span class="run-hint mono" id="run-hint">Walks every node on the page</span>
+      </div>
+    </div>
+
+    <figure class="face" id="face">
+      <button class="bulb" id="bulb" type="button" aria-label="Turn the light off" aria-pressed="false" title="Turn the light off">
+        <i class="bulb-badge" aria-hidden="true"></i><svg class="ic" aria-hidden="true"><use href="#i-bulb"/></svg>
+      </button>
+      <div class="stage" id="stage">
+        <img class="fimg on" id="fa" src="assets/face/c.webp" width="640" height="640" alt="Portrait of Joemark Basa, an AI-generated likeness that follows your cursor">
+        <img class="fimg" id="fb" src="assets/face/c.webp" width="640" height="640" alt="" aria-hidden="true">
+        <div class="dim" id="dim" aria-hidden="true"></div>
+        <span class="zz mono" id="zz" aria-hidden="true">z z</span>
+        <div class="tip glass" id="tip" role="tooltip">Yes, he's watching your cursor.</div>
+      </div>
+      <div class="pet" id="pet" aria-hidden="true"><button class="pet-cat" type="button" tabindex="-1" aria-label="Pet the cat"><img src="assets/cat/sit1.webp" alt="" width="148" height="202" draggable="false"><span class="pet-say" aria-hidden="true"></span><span class="pet-z mono">z z</span></button></div>
+    </figure>
+  </section>
+
+  <div class="wire" data-wire aria-hidden="true" data-from="0.18" data-to="0.5"></div>
+
+  <!-- 1b. SHOWCASE -->
+  <section class="group wrap" id="showcase" aria-labelledby="h-show">
+    <div class="snode node io" id="n-show" data-step="What I can do" data-node="show" data-chip="skills">
+      <div class="node-head"><span class="nt">Capabilities</span><span class="nm">what I can do</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-show">What I can do for you</h2>
+      <p class="lead">Pick one to open its page.</p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="live-wrap" data-step="Live right now">
+      <h3 class="lab-title mono">Live right now</h3>
+      <div class="livestrip" id="livestrip"></div>
+    </div>
+  </section>
+
+
+
+  </div>
+
+<div class="tabpanel" id="tab-work" data-tab="work" role="region" aria-label="Work">
+  <!-- 2. WORK -->
+  <section class="group wrap" id="work" aria-labelledby="h-work">
+    <div class="snode node io" id="n-work" data-step="Things I've built" data-node="work" data-chip="projects">
+      <div class="node-head"><span class="nt">Work</span><span class="nm">projects</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-work">Things I've built</h2>
+      <p class="lead">Live apps first. What I'm still working on is in the lab below.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter projects" id="filters" data-step="Filters"></div>
+    <div class="pgrid" id="pgrid"></div>
+    <div class="lab">
+      <h3 class="lab-title mono" data-step="In the lab">In the lab <span>(private)</span></h3>
+      <ul class="lab-list" id="lab"></ul>
+    </div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-how" data-tab="how" role="region" aria-label="How I work">
+  <!-- 3. HOW I WORK -->
+  <section class="group wrap" id="how" aria-labelledby="h-how">
+    <div class="snode node io" id="n-how" data-step="How I work" data-node="how" data-chip="steps">
+      <div class="node-head"><span class="nt">Process</span><span class="nm">workflow</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-how">How I work</h2>
+      <p class="lead">Every job I take goes through the same five nodes.</p>
+    </div>
+    <div class="flow" id="flow"></div>
+    <div class="flow-actions">
+      <button class="btn btn-line" id="btn-flow" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Run this flow</button>
+    </div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-brain" data-tab="brain" role="region" aria-label="Second brain">
+  <!-- 3b. SECOND BRAIN -->
+  <section class="group wrap" id="brain" aria-labelledby="h-brain">
+    <div class="snode node io brain-node" id="n-brain" data-step="My second brain" data-node="brain" data-chip="notes">
+      <div class="node-head"><span class="nt">Memory</span><span class="nm">second brain</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-brain">My second brain</h2>
+      <p class="lead">Every note I write in Obsidian, linked like neurons.<span id="brain-count"></span></p>
+      <div class="brain-stage" id="brain-stage" tabindex="0" role="group" aria-label="Interactive 3D graph of my Obsidian notes. Drag to orbit. Click the graph, then scroll or pinch to zoom.">
+        <p class="brain-status" id="brain-status" role="status">Scroll down to wake the brain.</p>
+      </div>
+    </div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-experience" data-tab="experience" role="region" aria-label="Experience">
+  <!-- 4. EXPERIENCE -->
+  <section class="group wrap" id="experience" aria-labelledby="h-exp">
+    <div class="snode node io" id="n-exp" data-step="Experience" data-node="experience" data-chip="roles">
+      <div class="node-head"><span class="nt">History</span><span class="nm">experience</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-exp">Where I've worked</h2>
+      <p class="lead">Results first, newest first.</p>
+    </div>
+    <div class="timeline" id="timeline" data-draw></div>
+    <div class="edu" id="edu"></div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-toolbox" data-tab="toolbox" role="region" aria-label="Toolbox">
+  <!-- 5. TOOLBOX -->
+  <section class="group wrap" id="toolbox" aria-labelledby="h-tools">
+    <div class="snode node io" id="n-tools" data-step="Toolbox" data-node="toolbox" data-chip="tools">
+      <div class="node-head"><span class="nt">Tools</span><span class="nm">toolbox</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-tools">Toolbox</h2>
+    </div>
+    <div class="tools" id="tools"></div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-team" data-tab="team" role="region" aria-label="Team">
+  <!-- 5b. OFF THE CLOCK -->
+  <section class="group wrap" id="offclock" aria-labelledby="h-off">
+    <div class="oc-teamwrap" id="oc-team"></div>
+    <div class="snode node io" id="n-off" data-step="Off the clock" data-node="offclock" data-chip="offclock">
+      <div class="node-head"><span class="nt">Side quests</span><span class="nm">off the clock</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <h2 id="h-off">Off the clock</h2>
+      <p class="lead" id="oc-sub">What I build and play with when nobody's paying me.</p>
+    </div>
+    <div class="oc" id="oc"></div>
+  </section>
+
+
+  <!-- 6. TAKE A BREAK -->
+  <section class="group wrap" id="break" aria-labelledby="h-break">
+    <div class="snode node io break" id="n-break" data-step="Take a break" data-node="break" data-chip="cat">
+      <div class="node-head"><span class="nt">Break</span><span class="nm">side quest</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <div class="break-body">
+        <div>
+          <h2 id="h-break">Stuck in a meeting?</h2>
+          <p class="lead">Play with my cat. WASD or arrow keys, fish for points, dogs for trouble.</p>
+        </div>
+        <button class="btn btn-line" type="button" id="btn-game"><svg class="ic" aria-hidden="true"><use href="#i-cat"/></svg>Play the cat game</button>
+      </div>
+    </div>
+  </section>
+
+
+  </div>
+
+<div class="tabpanel" id="tab-contact" data-tab="contact" role="region" aria-label="Contact">
+  <!-- 7. CONTACT / output node -->
+  <section class="group wrap" id="contact" aria-labelledby="h-contact">
+    <div class="node io contact-node" id="n-contact" data-step="Contact · Output" data-node="contact" data-chip="channels">
+      <div class="node-head"><span class="nt">Output</span><span class="nm">your inbox</span><span class="st"><i class="dot live"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
+      <div class="contact-body">
+        <h2 id="h-contact">Let's talk</h2>
+        <div class="email-row">
+          <a class="email mono" id="email-link" href="mailto:joemarkloarbasa96@gmail.com">joemarkloarbasa96@gmail.com</a>
+          <button class="btn btn-line btn-sm" type="button" id="btn-copy"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>Copy</button>
+        </div>
+        <div class="contact-btns" id="contact-btns"></div>
+        <p class="reply" id="reply-note">Usually replies within a day (Manila time, UTC+8).</p>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+
+<footer class="footer wrap">
+  <p>Built by Joemark with Claude Code. The photos and clips of me are AI-generated from my likeness, so I'll look a little less polished on a call. Still me, just enhanced.</p>
+  <p class="credit">Team avatars are pixel fan art of each agent's namesake character.</p>
+  <p class="mono">&copy; 2026 Joemark Basa · Last updated <span id="last-updated"></span></p>
+</footer>
+
+<noscript>
+  <div class="noscript wrap">
+    <h1>Joemark Basa</h1>
+    <p>AI Automation Specialist &amp; Technical Virtual Assistant, Davao City, Philippines.</p>
+    <p>Email: <a href="mailto:joemarkloarbasa96@gmail.com">joemarkloarbasa96@gmail.com</a> · <a href="https://www.linkedin.com/in/joemark-basa/">LinkedIn</a></p>
+  </div>
+</noscript>
+
+<!-- Fixed UI -->
+<button class="pause mono" id="btn-pause" type="button" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg><span>Pause motion</span></button>
+
+<div class="bottombar" id="bottombar">
+  <a class="btn btn-line" href="mailto:joemarkloarbasa96@gmail.com" data-smile><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>Email me</a>
+  <button class="btn btn-accent" type="button" data-act="book" data-smile><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Book a call</button>
+</div>
+
+<div class="runbar glass" id="runbar" role="region" aria-label="Workflow run controls" hidden>
+  <div class="rb-info" aria-live="polite"><span class="rb-count mono" id="rb-count">0 / 0</span><span class="rb-label" id="rb-label"></span></div>
+  <div class="rb-btns">
+    <button class="rb-b" id="rb-back" type="button" aria-label="Previous step" title="Back"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
+    <button class="rb-b rb-play" id="rb-play" type="button" aria-label="Pause" title="Pause (Space)"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
+    <button class="rb-b" id="rb-next" type="button" aria-label="Next step" title="Next"><svg class="ic" aria-hidden="true"><use href="#i-skip"/></svg></button>
+    <button class="rb-b" id="rb-stop" type="button" aria-label="Stop (Esc)" title="Stop (Esc)"><svg class="ic" aria-hidden="true"><use href="#i-stop"/></svg></button>
+    <button class="rb-b rb-speed mono" id="rb-speed" type="button" aria-label="Playback speed" title="Speed">1×</button>
+  </div>
+</div>
+
+<div class="toast mono" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Dialogs -->
+<dialog class="modal" id="dlg-project" aria-labelledby="dp-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="modal-head"><h2 id="dp-title"></h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="modal-body" id="dp-body"></div>
+</dialog>
+
+<dialog class="modal" id="dlg-agent" aria-labelledby="dag-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="modal-head"><h2 id="dag-title"></h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="modal-body" id="dag-body"></div>
+</dialog>
+
+<dialog class="modal" id="dlg-role" aria-labelledby="dro-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="modal-head"><h2 id="dro-title"></h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="modal-body" id="dro-body"></div>
+</dialog>
+
+<dialog class="modal" id="dlg-booking" aria-labelledby="db-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="modal-head"><h2 id="db-title">Book a call</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="modal-body">
+    <p>Booking page coming soon — email me.</p>
+    <p class="modal-actions"><a class="btn btn-accent" href="mailto:joemarkloarbasa96@gmail.com"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>Email me</a></p>
+  </div>
+</dialog>
+
+<dialog class="modal modal-palette" id="dlg-palette" aria-label="Command palette">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="pal-search">
+    <svg class="ic" aria-hidden="true"><use href="#i-cmd"/></svg>
+    <input id="pal-input" type="text" role="combobox" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Type a command or a project">
+  </div>
+  <ul class="pal-list" id="pal-list" role="listbox" aria-label="Commands"></ul>
+</dialog>
+
+<dialog class="modal modal-game" id="dlg-game" aria-labelledby="dg-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="modal-head">
+    <h2 id="dg-title">Take a break</h2>
+    <div class="head-actions">
+      <button class="icon-btn" type="button" id="g-mute" aria-label="Mute sound" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg></button>
+      <button class="icon-btn" type="button" data-close aria-label="Close game"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+  </div>
+  <div class="modal-body game-body">
+    <div class="hud mono" aria-live="off"><span>Fish <b id="g-score">0</b></span><span>Best <b id="g-best">0</b></span><span id="g-lives" aria-label="Lives">♥♥♥</span></div>
+    <canvas id="g-canvas" tabindex="0" aria-label="Cat game. Use WASD or arrow keys to move the cat and catch fish. Avoid the dogs."></canvas>
+    <div class="dpad" id="dpad" aria-label="On-screen controls">
+      <button type="button" data-dir="w" aria-label="Up">▲</button>
+      <button type="button" data-dir="a" aria-label="Left">◀</button>
+      <button type="button" data-dir="s" aria-label="Down">▼</button>
+      <button type="button" data-dir="d" aria-label="Right">▶</button>
+    </div>
+    <p class="game-hint mono" id="g-hint">WASD or arrows · catch fish · dodge dogs · Esc to close</p>
+  </div>
+</dialog>
+
+<script type="application/json" id="data-projects">{"last_updated":"2026-11-21","projects":[{"id":"gastos","name":"Gastos","icon":"wallet","group":"apps","one_liner":"Phone expense tracker for the Philippines (cash, cards, GCash, Maya), offline, with sync.","status":"live","visibility":"public","url":"https://gastos-six-phi.vercel.app","repo":"MarkBasa96/gastos","tags":["Expo","Supabase","Offline"],"details":"A phone-first expense tracker built for how money moves in the Philippines: cash, cards, GCash and Maya. It works offline and syncs when you are back online. Built with Expo and Supabase.","featured":true,"spotlight":true,"updated":"2026-09","icon_img":"assets/apps/gastos.png"},{"id":"patas","name":"Patas","icon":"list","group":"apps","one_liner":"Free debt and installment tracker: who you owe, what's left, what's due.","status":"live","visibility":"public","url":"https://patas-fawn.vercel.app","repo":"MarkBasa96/patas","tags":["Free","Open source"],"details":"A free tracker for debts and installments. It shows who you owe, how much is left and what is due next, so nothing gets forgotten.","featured":true,"updated":"2026-10","icon_img":"assets/apps/patas.png","recognition":{"label":"Selected · XERJ Corpus Hub","url":"https://hub.xerj.org/contributors/MarkBasa96","text":"Selected for the XERJ Corpus Hub (Oct 2026). A 6,499-line commit picked as a worked example that AI coding agents look up before writing their own code, credited to me."}},{"id":"demi-plank","name":"Demi Plank","icon":"timer","group":"apps","one_liner":"Offline plank coach with a voice that explains every move, endless levels.","status":"live","visibility":"public","url":"https://demi-plank.vercel.app","repo":"MarkBasa96/demi-plank","tags":["Offline","Web app","Android"],"details":"An offline plank-workout coach for the phone. A voice explains every move and the levels keep going. It runs as a web app and as an Android wrapper.","featured":true,"updated":"2026-11","icon_img":"assets/apps/demi-plank.png"},{"id":"gonilift","name":"GoniLift","icon":"wave","group":"ai","one_liner":"Free offline AI vocal remover for Windows; karaoke, key change, loop.","status":"live","visibility":"public","url":"https://markbasa96.github.io/gonilift/","repo":"MarkBasa96/gonilift","tags":["Windows","Offline","AI"],"details":"Splits a song into vocals and a backing track on your own PC, with no upload. Built for singing practice: karaoke, key change, slow-down and loop.","featured":true,"updated":"2026-10","icon_img":"assets/apps/gonilift.png","recognition":{"label":"Selected · XERJ Corpus Hub","url":"https://hub.xerj.org/contributors/MarkBasa96","text":"Added to the XERJ Corpus Hub (Oct 2026), the open reference library AI coding agents search before writing code, credited to me."}},{"id":"automation-roadmap","name":"Automation Roadmap","icon":"route","group":"automation","one_liner":"12-week interactive path from VA to AI automation specialist, with a study-buddy cat game.","status":"live","visibility":"public","url":"https://automation-roadmap-nine.vercel.app","repo":"MarkBasa96/automation-roadmap","tags":["Learning","Plain JS","Game"],"details":"An interactive learning roadmap for going from technical virtual assistant to AI automation specialist. It runs over 12 weeks and includes a study-buddy cat game, the one you can play further down this page.","featured":true,"updated":"2026-09","icon_img":"assets/apps/automation-roadmap.png"},{"id":"jarvis-ai-brain","name":"Jarvis AI Brain","icon":"brain","group":"ai","one_liner":"Obsidian second brain plus a hands-free voice assistant for Claude Code.","status":"live","status_label":"Public repo","visibility":"public","url":"https://github.com/MarkBasa96/jarvis-ai-brain","repo":"MarkBasa96/jarvis-ai-brain","tags":["Obsidian","Claude Code","Voice"],"details":"An Obsidian second-brain vault together with a hands-free voice assistant for Claude Code. It listens for a wake word, transcribes with Whisper and streams replies back.","featured":true,"updated":"2026-09"},{"id":"ask-her-out","name":"Ask Her Out","icon":"heart","group":"apps","one_liner":"Playful page that asks someone on a date; the No button never gives up.","status":"live","visibility":"public","url":"https://ask-her-out-orpin-psi.vercel.app","repo":"MarkBasa96/ask-her-out","tags":["Fun","Web page"],"details":"A small playful page that asks someone on a date. The No button never gives up.","featured":true,"updated":"2026-09","icon_img":"assets/apps/ask-her-out.png"},{"id":"video-autopost","name":"Video Autopost","icon":"send","group":"automation","one_liner":"Drop a video, approve on Telegram, it posts to Facebook, Instagram, YouTube and TikTok.","status":"building","visibility":"private","url":"","repo":"","tags":["n8n","Telegram","Private"],"details":"","featured":false},{"id":"jarvis-telegram","name":"Jarvis on Telegram","icon":"chat","group":"automation","one_liner":"Personal assistant: inbox tidy, reminders, file fetch, alerts.","status":"building","visibility":"private","url":"","repo":"","tags":["n8n","Telegram","Private"],"details":"","featured":false},{"id":"page-autopilot","name":"Page Autopilot","icon":"bot","group":"automation","one_liner":"AI sales assistant for a Facebook shop page.","status":"demo","visibility":"private","url":"","repo":"","tags":["n8n","AI","Private"],"details":"","featured":false},{"id":"kimgenious","name":"KimGenious","icon":"quiz","group":"apps","one_liner":"Classroom quiz and game maker built for a teacher, ten game modes.","status":"building","visibility":"private","url":"","repo":"","tags":["Education","Private"],"details":"","featured":false,"icon_img":"assets/apps/kimgenious.png"},{"id":"job-applier","name":"Job Applier","icon":"briefcase","group":"automation","one_liner":"Finds part-time roles, drafts applications, sends only what I approve.","status":"building","visibility":"private","url":"","repo":"","tags":["AI","Claude Code","Private"],"details":"","featured":false},{"id":"office-dashboard","name":"Office Dashboard","icon":"grid","group":"ai","one_liner":"A pixel \"office\" showing my AI agent team at work.","status":"building","visibility":"private","url":"","repo":"","tags":["AI agents","Private"],"details":"","featured":false},{"id":"wake-and-move","name":"Wake & Move","icon":"alarm","group":"apps","one_liner":"Alarm that only stops after you do the reps.","status":"building","visibility":"private","url":"","repo":"","tags":["Mobile","Private"],"details":"","featured":false,"icon_img":"assets/apps/wake-and-move.png"},{"id":"ai-drama","name":"AI Drama","icon":"film","group":"ai","one_liner":"Short AI-made Filipino drama series made with Google Flow.","status":"building","visibility":"private","url":"","repo":"","tags":["Video","Google Flow","Private"],"details":"","featured":false}]}</script>
+<script type="application/json" id="data-profile">{"name":"Joemark Basa","title":"AI Automation Specialist & Technical Virtual Assistant","location":"Davao City, Philippines","location_note":"Remote, works with any timezone","email":"joemarkloarbasa96@gmail.com","headline":"I turn repetitive work into workflows that run themselves.","sub":"Imagine your Monday without the copy-pasting. Your inbox sorts itself, your tracker updates on its own, and the right person gets pinged at the right moment. I build the automations behind that, test them until they break, and leave you a simple guide so your team can run them without me. You get your hours back, and the human side of the work stays in charge.","status":"Open to part-time & project work","stats":[{"value":"5+ yrs","label":"remote ops & support"},{"value":"20+","label":"workflow automations shipped"},{"value":"20 → 3 min","label":"per priority email after automation"}],"links":{"linkedin":"https://www.linkedin.com/in/joemark-basa/","github":"https://github.com/MarkBasa96"},"wa_parts":["63","919","798","4772"],"booking_url":"https://calendar.google.com/calendar/appointments/schedules/AcZssZ0wBgkxoKQ36u0OIhRdIko0jJ1gWZiaR3CDmHuc2I2jw6BOSonihBfe0wbSD_92n2d9pPkH1HA7","resume_url":"https://drive.google.com/file/d/1pY3QRw8vlyF8U0LmseFuEkGFrEeX6igx/view","reply_note":"Usually replies within a day (Manila time, UTC+8).","workflow":[{"type":"trigger","title":"Messy task","text":"Someone is copy-pasting the same thing again."},{"type":"step","title":"Map the process","text":"Write down every step, who touches it and where it breaks."},{"type":"build","title":"Build in n8n / Power Automate","text":"The smallest working version first, then the edge cases."},{"type":"test","title":"Test it to fail","text":"Feed it bad input on purpose until it breaks, then fix it."},{"type":"output","title":"Hand-off with SOP","text":"A written SOP so your team can run it without me."}],"experience":[{"role":"Team Lead","org":"Genashtim, Inc.","place":"Remote, Singapore","from":"Apr 2026","to":"Sep 2026","bullets":["Led 4 VAs on 300+ requests a month.","Built 15+ Power Automate flows.","AI email workflow reads emails and PDFs, logs to a tracker and alerts the team: 20 min → 2–3 min per request.","KPI dashboard, duty roster and SOPs."],"details":{"did":["Led and supported 4 virtual assistants handling about 300+ requests a month: executive assistance, scheduling, research, data entry, customer support and finance/admin tasks.","Coordinated daily workloads in Asana, Microsoft Teams, Excel and email, about 10 requests a day across recurring and new assignments.","Ran daily random QA reviews and weekly focused quality reviews on team outputs to catch errors and process gaps.","Built and rolled out 15+ Microsoft Power Automate workflows for recurring admin work, to make tasks more visible and reliable.","Built a KPI dashboard that gave management a view of team progress, performance, workload and operational metrics.","Created a duty roster for weekend monitoring so important requests are not overlooked after a missed monitoring task.","Coached the 4 VAs through one-on-one check-ins, performance guidance and practical use of AI tools.","Wrote and kept up SOPs, checklists, workflow documentation and knowledge resources.","Worked with stakeholders to resolve operational issues and time-sensitive executive and business requests."],"tools":["Power Automate","Asana","Microsoft Teams","Excel","Outlook","AI tools"],"results":["4 VAs led","300+ requests a month","About 10 requests a day","15+ Power Automate flows","20 min → 2–3 min per CEO-priority request"],"built":"An AI-assisted workflow for CEO-priority email. It reads incoming emails and their PDF attachments, summarises each request into an Excel tracker, flags urgent or high-priority items, and alerts the team in Microsoft Teams. It replaced manual email review, information extraction, tracker updates and team notifications, which took about 20 minutes per request and now take 2–3."}},{"role":"Admin Virtual Assistant","org":"Genashtim, Inc.","place":"Remote","from":"Apr 2025","to":"Mar 2026","bullets":["Executive inbox and calendar.","Daily QA on team outputs.","Finance claims.","Asana, Teams and Excel."],"details":{"did":["Managed executive inboxes, calendars and daily trackers: travel, meetings, scheduling confirmations and recurring tasks.","Gave employee and admin support: data entry, research, database updates, digital signatures, PowerPoint edits and recurring task coordination.","Ran daily quality checks on team outputs to keep accuracy up and errors down.","Kept tasks, progress and documentation clear in Asana, Microsoft Teams, Outlook and Excel.","Created and organised finance claims in Excel, accurate and submitted on time.","Completed professional development training to build technical skills."],"tools":["Asana","Microsoft Teams","Outlook","Excel","PowerPoint"],"results":[],"built":"The AI-assisted CEO-priority email workflow came later, in the Team Lead role: it reads emails and PDF attachments, summarises them into an Excel tracker, flags urgent items and alerts the team in Microsoft Teams."}},{"role":"ESG Research Specialist","org":"ESG Business Institute","place":"Remote","from":"Aug 2025","to":"Sep 2026","bullets":["LinkedIn outreach.","LOXO CRM pipeline.","Tracking and reporting."],"details":{"did":["Ran targeted outreach on LinkedIn and other platforms to recruit professionals into the ESG membership programme, and managed the pipeline in LOXO CRM.","Kept Excel tracking for follow-ups, registration status and engagement metrics, for accurate reporting.","Monitored new sign-ups and kept the ESG directory records accurate for credentialing and reporting.","Worked with teammates to streamline workflows and keep communication consistent across platforms."],"tools":["LinkedIn","LOXO CRM","Excel"],"results":[]}},{"role":"Chat Support Specialist","org":"Concentrix","place":"","from":"Jul 2024","to":"Apr 2025","bullets":["3–4 simultaneous chats.","Retail logistics and after-sales."],"details":{"did":["Handled 3–4 customer chats at the same time for a retail account, answering logistics and after-sales questions quickly and accurately.","Found and resolved customer issues and kept accurate interaction records.","Reviewed performance metrics regularly to work faster and better.","Worked with teammates and other departments to smooth out support processes."],"tools":["Chat support tools"],"results":["3–4 simultaneous chats"]}},{"role":"Admin Virtual Assistant","org":"Nexocentric Studios, LLC","place":"","from":"Mar 2023","to":"Oct 2023","bullets":["Calendars.","Lead generation.","Social media.","Video editing."],"details":{"did":["Managed executive calendars, emails and daily operations.","Scheduled appointments and supported lead generation using Excel and spreadsheets.","Managed social media and supported creative projects, content planning and music production.","Did video editing and content creation to strengthen the brand and audience engagement.","Did research and ad-hoc admin tasks tied to business goals."],"tools":["Excel","Spreadsheets","Social media","Video editing"],"results":[]}}],"earlier":["Sales & service roles at Alorica, IQOR and Siblings Solution (2019–2020)","Senior Sales Associate, Gaisano Mall of Tagum (2015–2019)"],"education":{"degree":"BS Computing Education (Computer Science)","school":"University of Mindanao – Tagum","years":"2023 – on hold"},"certificates":["Virtual Assistance (VirtualWorksPH, 2023)","Articulate 360 (eLearningMinds, 2025)","ESG Business Institute membership (2025)"],"toolbox":[{"group":"Automation","items":[{"name":"n8n (self-hosted)","img":"assets/tools/n8n.svg"},{"name":"Power Automate","img":"assets/tools/power-automate.png"},{"name":"Make","img":"assets/tools/make.svg"},{"name":"Zapier","img":"assets/tools/zapier.svg"}]},{"group":"AI","items":[{"name":"Claude Code","img":"assets/tools/claude-code.svg"},{"name":"Claude","img":"assets/tools/claude.svg"},{"name":"ChatGPT","img":"assets/tools/chatgpt.svg"},{"name":"Gemini","img":"assets/tools/gemini.svg"},{"name":"Copilot","img":"assets/tools/copilot.png"},{"name":"Google Flow","img":"assets/tools/google-flow.png"}]},{"group":"Work","items":[{"name":"Microsoft 365","img":"assets/tools/microsoft-365.png"},{"name":"Google Workspace","img":"assets/tools/google-workspace.png"},{"name":"Asana","img":"assets/tools/asana.svg"},{"name":"Airtable","img":"assets/tools/airtable.svg"},{"name":"GoHighLevel","img":"assets/tools/gohighlevel.png"},{"name":"LOXO CRM","img":"assets/tools/loxo-crm.png"}]},{"group":"Build","items":[{"name":"HTML/CSS/JS","img":"assets/tools/html5.svg"},{"name":"Supabase","img":"assets/tools/supabase.svg"},{"name":"Vercel","img":"assets/tools/vercel.svg"},{"name":"GitHub","img":"assets/tools/github.svg"},{"name":"Remotion","img":"assets/tools/remotion.png"}]},{"group":"Content","items":[{"name":"Canva","img":"assets/tools/canva.svg"},{"name":"CapCut","img":"assets/tools/capcut.png"},{"name":"Articulate 360","img":"assets/tools/articulate-360.png"},{"name":"Obsidian","img":"assets/tools/obsidian.svg"}]}],"recognition":[{"id":"xerj","title":"XERJ Corpus Hub","url":"https://hub.xerj.org/contributors/MarkBasa96","summary":"XERJ is an open-source search engine for AI coding agents. Its Corpus Hub is an open reference library the agents search before writing code, and they get the author's name and repo with the result.","items":[{"project":"Patas","date":"Oct 2026","text":"A 6,499-line commit (59 files, with tests) was selected as a worked example."},{"project":"GoniLift","date":"Oct 2026","text":"Added to the hub as a reference project."}]}],"earlier_details":[{"role":"Sales & Service Specialist","org":"Alorica, Inc. (BPO)","place":"Davao City","dates":"Dec 2019 – Apr 2020","bullets":["Gathered orders from current and potential sales outlets and kept pipeline activity moving.","Managed customer transactions from first contact to completion, with customer satisfaction first.","Ran sales strategies across existing and new market segments and adapted to customer needs."]},{"role":"Sales Representative","org":"IQOR, Inc. (BPO)","place":"Davao City","dates":"Apr 2019 – Nov 2019","bullets":["Ran sales strategies for key markets, using customer and industry insight to meet sales goals.","Generated leads, built client relationships and kept a steady pipeline.","Gave customer service through the sales process to support satisfaction and retention."]},{"role":"Appointment Setter","org":"Siblings Solution (BPO)","place":"Tagum City","dates":"Jan 2019 – Apr 2019","bullets":["Found and contacted potential dental patients, turned inquiries into appointments and handed leads on for follow-up."]},{"role":"Senior Sales Associate","org":"Gaisano Mall of Tagum","place":"Tagum City","dates":"Mar 2015 – Jan 2019","bullets":["Oversaw store operations: inventory, financial tracking and leading junior staff.","Gave product guidance and customer service while keeping inventory records accurate."]}],"off_clock":{"title":"Off the clock","sub":"What I build and play with when nobody's paying me.","brain":{"title":"The brain I built","text":"My second brain is an Obsidian vault with {N} notes. Strategy lives at the top, every project gets its own folder underneath, and a memory folder means my AI remembers decisions, mistakes and preferences across sessions. My Claude chats on my phone drop notes into an inbox, and the brain files them. When I say 'that's all for today', it writes the day's journal, logs any mistakes so they don't happen twice, updates the project notes and tidies my task list.","link":"See it live","href":"#brain"},"raphael":{"title":"Meet Raphael","text":"My main AI is called Raphael, after the Ultimate Skill 'Raphael, Lord of Wisdom' from That Time I Got Reincarnated as a Slime. She runs on my PC through Claude Code. In the story, Raphael evolves into Ciel once she knows enough, and that's the plan here too. Her friend Jarvis lives on my old laptop. They're peers, not boss and assistant."},"commands":{"title":"How I talk to them","items":[{"say":"Kenshin, look at this","does":"Hands the job straight to that agent, who answers in his own voice."},{"say":"that's all for today","does":"Journal, mistakes log, project notes and task list, all tidied."},{"say":"post it","does":"Publishes an approved video to five platforms."},{"say":"open office","does":"Starts my pixel office dashboard, where the agents have desks."},{"say":"Model routing","does":"Everyday work on Sonnet, hard thinking handed to Opus, bulk chores to Haiku, so nothing burns tokens it does not need.","plain":true}]},"team":{"title":"The team","agents":[{"name":"Levi","from":"Levi Ackerman, Attack on Titan","role":"Team lead. Audits the team itself: who's stale, who's overlapping.","hue":"#ff6d3f","sprite":"levi","more":{"intro":"The team lead. He does not do the work; he checks that the team doing it is still sharp.","does":["Audits each agent: is its definition still accurate, are its tools and instructions out of date?","Checks whether recent output met the agent's own standard.","Spots overlap and gaps between agents' jobs.","Reports to Raphael with the exact fix, down to the file and line."],"when":"Every so often, and whenever I add or change an agent.","never":"Edits another agent's file. He investigates and recommends; Raphael makes the change."}},{"name":"Kenshin","from":"Himura Kenshin, Rurouni Kenshin","role":"Security & QA. Finds leaks, reports, never touches the fix himself.","hue":"#c8553d","sprite":"kenshin","dept":"Operations & QA","more":{"intro":"Security and QA. Calm, precise and very capable, and he never cuts first.","does":["Hunts for leaked secrets in files and in git history.","Checks which ports are open and what a service really listens on.","Looks for command injection, unsafe shell use, risky permissions and dependencies.","Runs general code-quality passes, and rates each finding with a concrete fix."],"when":"Before anything goes public: apps, repos, servers.","never":"Fixes anything himself. He finds everything and changes nothing."}},{"name":"Senku","from":"Senku Ishigami, Dr. Stone","role":"Research. Checks claims against real sources.","hue":"#3a9d6e","sprite":"senku","dept":"Research","more":{"intro":"Research. He trusts evidence over opinion and shows his working.","does":["Compares tools, frameworks and approaches before I choose one.","Checks what is current practice instead of what he remembers.","Verifies claims about versions, pricing and capabilities.","Returns a written report with a recommendation and honest trade-offs."],"when":"When a decision needs facts: which tool, which approach, is that claim true.","never":"Guesses. If he could not confirm something, the report says so."}},{"name":"Erina","from":"Erina Nakiri, Food Wars!","role":"Design critic. Tells me if a page looks AI-made.","hue":"#b9638f","sprite":"erina","dept":"Design","more":{"intro":"The design critic. If a client or the public will see it, it passes her eye first.","does":["Judges art direction, visual hierarchy and whether a design fits its audience.","Spots what still looks AI-made.","Sets the design direction before I build: the brief, the references, what to avoid.","Never gives a criticism without the correction attached."],"when":"Before a site or a screen goes in front of anyone who is paying.","never":"Says \"I don't like it\" without a reason, or builds the thing herself. She judges and directs."}},{"name":"Rohan","from":"Kishibe Rohan, JoJo's Bizarre Adventure","role":"Copywriter. Never invents a fact.","hue":"#7a6bd1","sprite":"rohan","dept":"Content","more":{"intro":"The copywriter. Everything written for an audience other than me goes through him.","does":["Video scripts, hooks and titles.","Landing pages, offers and proposals.","Outreach messages, listings and captions.","Makes public pages findable: real search words, and FAQ answers in one plain sentence."],"when":"Whenever words will be read by other people.","never":"Invents a fact, a number or a testimonial. If he is missing something, he says he needs it first."}},{"name":"Nami","from":"Nami, One Piece","role":"Money watchdog. Reads billing emails so subscriptions don't sneak up on me.","hue":"#d8932a","sprite":"nami","dept":"Finance","more":{"intro":"The money watchdog. She watches what is already leaving my pocket.","does":["Tracks subscriptions and their renewal dates.","Warns before a free trial turns into a paid plan.","Watches pay-as-you-go and API spend.","Catches price rises and duplicate or forgotten charges, reading billing emails read-only."],"when":"Regular money check-ups, or whenever a charge looks odd.","never":"Pays, cancels or unsubscribes anything. She only advises."}},{"name":"Kuroko","from":"Kuroko Tetsuya, Kuroko's Basketball","role":"Video critic. Grades cuts, pacing and motion.","hue":"#3f8fc4","sprite":"kuroko","dept":"Editorial","more":{"intro":"The video critic. He grades anything that moves before it reaches me or a platform.","does":["Cuts, pacing and rhythm against the voiceover and sound.","Pans and zooms on still art, b-roll placement, caption timing, sound effects.","Checks that a portrait cut and its landscape version both still work.","Names the exact timestamp and the fix."],"when":"Before a video is posted.","never":"Edits the video himself, or judges stills and words. Those belong to Erina and Rohan."}}],"retired":[{"name":"Hermes","role":"always-on dispatcher"},{"name":"Zoro","role":"backup coder"}],"note":"Every agent has its own voice. Saying a name hands the job over; saying 'Jarvis' hands it back.","joe":{"name":"Joe","role":"Orchestrator. Sets the goals, approves anything risky or costly.","img":"assets/face/smile.webp","more":{"intro":"The human in charge. I set the goals, decide what matters, and approve anything risky, costly or public.","does":["Sets the order of work: automation first, then the brain, then content.","Approves anything that spends money, goes public or reaches a client.","Talks to the team in plain language, or by name: \"Kenshin, look at this\"."],"when":"Always. Nothing ships without me.","never":"Hands over the final say. The agents advise and build; I decide."}},"raphael":{"name":"Raphael","from":"Ultimate Skill, That Time I Got Reincarnated as a Slime","role":"Director. My main AI on Claude Code: plans, routes every job and does the hands-on work.","sprite":"raphael","hue":"#ff6d3f","more":{"intro":"My main AI on Claude Code, named after the Ultimate Skill \"Raphael, Lord of Wisdom\". She is the one I actually talk to all day.","does":["Plans each job and routes it to the right specialist.","Builds things: websites, n8n workflows, apps, and this page.","Keeps the second brain tidy: journals, a mistakes log, project notes.","Hands hard design or bulk chores to the model that suits them, so nothing burns more than it needs."],"when":"Every session. If it is a job, it starts with Raphael.","never":"Spends money, publishes anything public or messages a client without showing me first."}},"jarvis":{"name":"Jarvis","role":"Peer on my old laptop. Same brain, different machine.","sprite":"jarvis","hue":"#5b7fb8","more":{"intro":"Raphael's peer on my old laptop. Same idea, different machine, so a second brain is always around.","does":["Runs on the old laptop with his own copy of the brain.","Shares the same habits as Raphael: notes, memory and skills live in a vault.","Works as a friend and a peer, not a boss or an assistant to Raphael."],"when":"When I am on the old laptop, or want a second opinion from the other brain.","never":"Gives orders to Raphael, or the other way round. They share notes, not commands."}},"chart_note":"Departments group agents by job. Every agent takes work from Raphael directly; Levi reviews the team, not the tasks."},"hobbies":{"title":"When I'm not building","items":[{"icon":"mic","name":"Singing","text":"I built GoniLift for my own singing practice: split any song, change the key, loop the hard part."},{"icon":"cat","name":"Demi, my cat","text":"He has two apps named after him: Demi Plank and the Demi alarm."},{"icon":"dumbbell","name":"Workouts","text":"Planks every day, and an alarm that won't stop until I've done the reps."},{"icon":"spark","name":"Anime","text":"Notice the team names? Every agent is named after a character."},{"icon":"film","name":"AI dramas & Raph Tries","text":"I make short Filipino dramas with AI video in Google Flow, and run Raph Tries: I try things so you don't have to."}]}},"core_skills":["Team Leadership","Workflow Automation","AI-Assisted Workflows","Prompt Engineering","Quality Assurance","Customer Support","Project Coordination","Administrative Support","E-Learning"]}</script>
+<script src="game.js"></script>
+<script src="app.js"></script>
+<script src="brain.js"></script>
+</body>
+</html>
