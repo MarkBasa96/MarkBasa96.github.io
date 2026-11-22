@@ -1152,7 +1152,7 @@ html.no-run .side-run { display: none !important; }
 .yard-hint { margin: 14px 0 10px; color: var(--muted); font-size: 11.5px; }
 .yard {
   position: relative; width: 100%; height: 420px; border-radius: 18px; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 0%, var(--card), var(--strip) 70%); border: 1px solid var(--line);
+  background: transparent; border: 0;
 }
 .walker {
   position: absolute; left: 0; top: 0; width: 76px; padding: 0; border: 0; background: none; cursor: pointer;
