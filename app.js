@@ -437,7 +437,7 @@
     function onMove(e) {
       if (!grab) return; var b = grab, p = local(e), nx = Math.max(b.r, Math.min(W - b.r, p.x + b.ox)), ny = Math.max(b.r, Math.min(H - b.r, p.y + b.oy)), now = performance.now();
       b.moved += Math.hypot(nx - b.x, ny - b.y); b.x = nx; b.y = ny;
-      b.hist.push({ x: nx, y: ny, t: now }); while (b.hist.length > 2 && now - b.hist[0].t > 90) b.hist.shift();
+      b.hist.push({ x: nx, y: ny, t: now }); while (b.hist.length > 2 && now - b.hist[0].t > 60) b.hist.shift();
       place(b); showTip(b);
     }
     function onUp() {
@@ -570,7 +570,19 @@
         if (d < 1.5) { w.wait = rnd(0.8, 3.2); w.el.classList.remove('walking'); return; }
         var step = Math.min(d, w.speed * dt); w.x += dx / d * step; w.y += dy / d * step;
         if (Math.abs(dx) > 2) w.el.classList.toggle('left', dx < 0);
-        place(w);
+      });
+      /* personal space: walkers that bump into each other drift apart instead of stacking */
+      var sw = box.clientWidth, sh = box.clientHeight;
+      for (var i = 0; i < ws.length; i++) for (var j = i + 1; j < ws.length; j++) {
+        var a = ws[i], c = ws[j], ox = c.x - a.x, oy = c.y - a.y, gx = 58 - Math.abs(ox), gy = 70 - Math.abs(oy);
+        if (gx <= 0 || gy <= 0) continue;
+        var sx = ox ? Math.sign(ox) : (i % 2 ? 1 : -1), push = Math.min(gx, 40) * dt * 2.2;
+        a.x -= sx * push; c.x += sx * push;
+        if (gy < 40) { var sy = oy ? Math.sign(oy) : 1; a.y -= sy * push * .5; c.y += sy * push * .5; }
+      }
+      ws.forEach(function (w) {
+        var bw = w.el.offsetWidth, bh = w.el.offsetHeight;
+        w.x = Math.max(0, Math.min(sw - bw, w.x)); w.y = Math.max(8, Math.min(sh - bh - 4, w.y)); place(w);
       });
       raf = requestAnimationFrame(frame);
     }
