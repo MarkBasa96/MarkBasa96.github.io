@@ -205,7 +205,7 @@
     setText('p-status', p.status); setText('p-loc', p.location + (p.location_note ? ' · ' + p.location_note.split(',')[0] : ''));
     $('#stats').innerHTML = (p.stats || []).map(function (s) { return '<li><b>' + esc(s.value) + '</b><span>' + esc(s.label) + '</span></li>'; }).join('');
     setText('reply-note', p.reply_note);
-    var l = $('#email-link'); l.textContent = p.email; l.href = 'mailto:' + p.email;
+    var l = $('#email-link'); if (l) { l.textContent = p.email; l.href = 'mailto:' + p.email; }
     $$('.last-updated').forEach(function (e) { e.textContent = ymd(DATA.projects.last_updated); });
   }
 
@@ -715,15 +715,15 @@
   document.addEventListener('jb-brain-count', renderOffClock);
 
   function waHref() { var parts = (P().wa_parts || []); return 'https://wa.me/' + parts.join(''); }
+  function brand(n) { return '<svg class="brand" aria-hidden="true"><use href="#b-' + n + '"/></svg>'; }
   function renderContact() {
     var p = P(), links = p.links || {};
     var btns = [
-      '<a class="btn btn-line" href="mailto:' + esc(p.email) + '" data-smile>' + ic('mail') + 'Email</a>',
-      '<button class="btn btn-line" type="button" data-act="whatsapp" data-smile>' + ic('whatsapp') + 'WhatsApp</button>',
-      '<a class="btn btn-line" href="' + esc(links.linkedin) + '" target="_blank" rel="noopener" data-smile>' + ic('linkedin') + 'LinkedIn</a>',
-      '<a class="btn btn-line" href="' + esc(links.github) + '" target="_blank" rel="noopener" data-smile>' + ic('github') + 'GitHub</a>',
-      '<button class="btn btn-accent" type="button" data-act="book" data-smile>' + ic('calendar') + 'Book a call</button>',
-      '<a class="btn btn-line" href="' + esc(p.resume_url || '#') + '" target="_blank" rel="noopener" data-smile>' + ic('doc') + 'Résumé (PDF)' + ic('ext') + '</a>'
+      '<a class="btn btn-line" href="mailto:' + esc(p.email) + '" data-smile>' + brand('gmail') + 'Email</a>',
+      '<button class="btn btn-line" type="button" data-act="whatsapp" data-smile>' + brand('whatsapp') + 'WhatsApp</button>',
+      '<a class="btn btn-line" href="' + esc(links.linkedin) + '" target="_blank" rel="noopener" data-smile>' + brand('linkedin') + 'LinkedIn</a>',
+      '<a class="btn btn-line" href="' + esc(links.github) + '" target="_blank" rel="noopener" data-smile>' + brand('github') + 'GitHub</a>',
+      '<button class="btn btn-accent" type="button" data-act="book" data-smile>' + ic('calendar') + 'Book a call</button>'
     ];
     $('#contact-btns').innerHTML = btns.join('');
   }
@@ -828,7 +828,7 @@
         var on = a.dataset.tab === name; a.classList.toggle('on', on);
         if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
       });
-      curTab = name; runAvail(name); intro($('#tab-' + name));
+      curTab = name; runAvail(name); root.classList.toggle('on-contact', name === 'contact'); if (window.__CatBar) window.__CatBar.sync(); intro($('#tab-' + name));
       if (!opts.noHash) { try { history.replaceState(null, '', name === 'home' ? location.pathname + location.search : '#' + name); } catch (e) {} }
       if (!opts.keepScroll) window.scrollTo(0, 0);
       layoutAll(); layoutOrg(); setTimeout(function () { layoutAll(); layoutOrg(); }, 80);
@@ -928,7 +928,7 @@
     }
   });
   $('#btn-theme').addEventListener('click', toggleTheme);
-  $('#btn-copy').addEventListener('click', copyEmail);
+  if ($('#btn-copy')) $('#btn-copy').addEventListener('click', copyEmail);
   if ($('#btn-game')) $('#btn-game').addEventListener('click', function () { if (window.CatGame) window.CatGame.open(); });
 
 
@@ -1600,7 +1600,7 @@
       if (!keepText) inp.value = ''; list.hidden = true; list.innerHTML = ''; inp.blur();
     }
     function pick(i) { var c = items[i]; if (!c) return; close(); setTimeout(function () { c.run(btn); }, 30); }
-    btn.addEventListener('click', function () { if (isOpen()) close(); else open(); });
+    btn.addEventListener('click', function () { if (isOpen()) close(); else window.__QS.open(); });
     var x = $('#m-sclose'); if (x) x.addEventListener('click', function () { close(); btn.focus({ preventScroll: true }); });
     inp.addEventListener('input', render);
     inp.addEventListener('keydown', function (e) {
@@ -1616,6 +1616,14 @@
     list.addEventListener('click', function (e) { var li = e.target.closest('.pal-item'); if (li) pick(+li.dataset.i); });
     document.addEventListener('pointerdown', function (e) { if (isOpen() && !e.target.closest('#m-sbox, #m-sresults, #btn-search')) close(); }, true);
     window.__QS = { open: open, close: close, isOpen: isOpen };
+    var deskMQ = window.matchMedia('(min-width: 960px)'), home = btn.parentNode, anchor = btn.nextSibling;
+    function place() {
+      if (deskMQ.matches) [box, list, btn].forEach(function (el) { document.body.appendChild(el); });
+      else { home.insertBefore(btn, anchor); home.insertBefore(list, btn); home.insertBefore(box, list); }
+    }
+    place(); deskMQ.addEventListener('change', function () { close(); place(); });
+    var _open = open; open = function () { if (deskMQ.matches && window.pageYOffset > 10) window.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' }); _open(); };
+    window.__QS.open = open;
   })();
   document.addEventListener('keydown', function (e) {
     if ((e.metaKey || e.ctrlKey) && (e.key || '').toLowerCase() === 'k') {
@@ -1712,6 +1720,35 @@
     ui();
     window.__JBFeel = { clack: clack, prime: function () { if (on) ensure(); } };
     return { play: play, clack: clack };
+  })();
+
+  /* ---------- phones: on Contact a pixel cat strolls in the bottom strip, stopping now and then ---------- */
+  window.__CatBar = (function () {
+    var bar = $('#catbar'), img = bar && $('img', bar); if (!bar || !img) return null;
+    var W = { walk: ['walk1', 'walk2', 'walk3', 'walk4'], sit: ['sit1', 'sit2'], lick: ['lick1', 'lick2'] }, raf = 0, last = 0;
+    var C = { x: 40, dir: 1, mode: 'sit', fi: 0, next: 0, until: 0, target: 0 };
+    Object.keys(W).forEach(function (k) { W[k].forEach(function (n) { var i = new Image(); i.src = 'assets/cat/' + n + '.webp'; }); });
+    var mq = window.matchMedia('(max-width: 959px)');
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function on() { return mq.matches && root.classList.contains('on-contact') && !document.hidden; }
+    function setMode(m, t) { C.mode = m; C.fi = 0; C.until = performance.now() + t; C.next = 0; if (m === 'walk') { var w = bar.clientWidth - img.offsetWidth; C.target = rnd(0, Math.max(0, w)); C.dir = C.target > C.x ? 1 : -1; } }
+    function frame(now) {
+      raf = 0; if (!on()) return;
+      var dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+      if (C.mode === 'walk') {
+        var step = 46 * dt * C.dir; C.x += step;
+        if ((C.dir > 0 && C.x >= C.target) || (C.dir < 0 && C.x <= C.target)) { C.x = C.target; setMode(Math.random() < .3 ? 'lick' : 'sit', rnd(1800, 4200)); }
+      } else if (now > C.until) setMode('walk', 0);
+      if (now > C.next) {
+        var fr = W[C.mode]; C.fi = (C.fi + 1) % fr.length; img.src = 'assets/cat/' + fr[C.fi] + '.webp';
+        img.className = 'catbar-cat m-' + C.mode; C.next = now + (C.mode === 'walk' ? 140 : C.mode === 'lick' ? 380 : (C.fi ? 180 : rnd(1400, 2600)));
+      }
+      img.style.transform = 'translateX(' + C.x.toFixed(1) + 'px)' + (C.dir < 0 ? ' scaleX(-1)' : '');
+      raf = requestAnimationFrame(frame);
+    }
+    function sync() { if (on() && !raf) { last = 0; if (reduced()) { setMode('sit', 1e9); img.style.transform = 'translateX(' + C.x + 'px)'; return; } raf = requestAnimationFrame(frame); } }
+    document.addEventListener('visibilitychange', sync);
+    return { sync: sync };
   })();
 
   /* ---------- Demi, the pixel cat that lives next to the portrait ---------- */

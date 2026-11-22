@@ -1425,3 +1425,57 @@ html.no-run .side-run { display: none !important; }
 @media (min-width: 960px) {
   .tabpanel > .group:first-child:not(#top), .tabpanel > .tab-run-row:first-child + .group { padding-top: 80px; }
 }
+
+/* ================= Live right now: app icons like a phone home screen, all at once ================= */
+.livestrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 18px 12px; overflow: visible; scroll-snap-type: none; padding: 4px 0 8px; }
+.livestrip .live-item { width: auto; flex-direction: column; text-align: center; gap: 8px; padding: 4px; background: none; border: 0; box-shadow: none; }
+.livestrip .live-item:hover { transform: translateY(-3px); }
+.livestrip .live-item small { display: none; }
+.livestrip .live-item .pic, .livestrip .live-item .pimg { width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 6px 14px -6px rgb(0 0 0 / .35); }
+.livestrip .live-item b { font-size: .8rem; font-weight: 500; }
+@media (max-width: 959px) {
+  .livestrip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 6px; }
+  .livestrip .live-item .pic, .livestrip .live-item .pimg { width: 54px; height: 54px; border-radius: 14px; }
+  .livestrip .live-item b { font-size: .72rem; }
+}
+
+/* ================= Contact: brand logos, box centred on the screen ================= */
+.contact-btns .brand { width: 18px; height: 18px; flex: none; color: var(--text); }
+#tab-contact.on { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding-bottom: 0; }
+#tab-contact.on > .group { width: 100%; padding-top: 0 !important; padding-bottom: 0; }
+@media (max-width: 959px) {
+  #tab-contact.on { min-height: calc(100dvh - 58px - 76px); }
+}
+
+/* ================= Sidebar without the email ================= */
+@media (min-width: 960px) { .side-copy { margin-top: 14px; } }
+
+/* ================= Desktop search: sits on the page and scrolls away ================= */
+@media (min-width: 960px) {
+  .m-search, .m-sbox, .m-sresults { position: absolute; }
+}
+
+/* ================= Phones: on Contact the bottom bar slides away and a cat strolls there ================= */
+.catbar { display: none; }
+@media (max-width: 959px) {
+  .bottombar { transition: transform .7s cubic-bezier(.4, 0, .2, 1) .45s, opacity .6s ease .45s; }
+  html.on-contact .bottombar { transform: translateY(105%); opacity: 0; pointer-events: none; transition: transform .7s cubic-bezier(.4, 0, .2, 1), opacity .6s ease; }
+  .catbar {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 39; height: calc(76px + env(safe-area-inset-bottom, 0px)); padding: 0 14px;
+    pointer-events: none; opacity: 0; transition: opacity .5s ease;
+  }
+  html.on-contact .catbar { opacity: 1; transition: opacity .7s ease .55s; }
+  .catbar-cat { position: absolute; left: 14px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); height: 56px; width: auto; max-width: none; image-rendering: auto; user-select: none; transform-origin: center; filter: drop-shadow(0 4px 5px rgb(0 0 0 / .2)); }
+  .catbar-cat.m-walk { height: 47px; }
+}
+@media (max-width: 959px) and (prefers-reduced-motion: reduce) { .bottombar, html.on-contact .bottombar, .catbar, html.on-contact .catbar { transition: none; } }
+
+/* ================= Home: a quieter light bulb ================= */
+.face .bulb { width: 34px; height: 34px; background: color-mix(in srgb, var(--card) 78%, transparent); border-color: var(--line); box-shadow: 0 2px 8px -3px rgb(0 0 0 / .25); animation-duration: 4.5s; }
+.face .bulb .ic { width: 16px; height: 16px; }
+.face:not(.asleep) .bulb { color: var(--muted); }
+.face:not(.asleep) .bulb .ic { fill: color-mix(in srgb, #f2b84b 35%, transparent); }
+.face .bulb:hover { color: var(--text); border-color: var(--wire); }
+.bulb-badge { width: 7px; height: 7px; top: -1px; right: -1px; box-shadow: none; animation: bulbsoft 2.6s ease-in-out infinite; }
+@keyframes bulbsoft { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (max-width: 479px) { .face .bulb { width: 30px; height: 30px; } }
