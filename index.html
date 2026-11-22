@@ -232,6 +232,7 @@
       <a href="#toolbox" data-tab="toolbox"><svg class="ic" aria-hidden="true"><use href="#i-spark"/></svg><span>Toolbox</span></a>
       <a href="#team" data-tab="team"><svg class="ic" aria-hidden="true"><use href="#i-bot"/></svg><span>Team</span></a>
       <a href="#contact" data-tab="contact"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg><span>Contact</span></a>
+      <a href="#faq" data-tab="faq"><svg class="ic" aria-hidden="true"><use href="#i-quiz"/></svg><span>FAQ</span></a>
       <i class="tl-sep" aria-hidden="true"></i>
       <button type="button" class="tl-act" data-act="resume"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg><span>Résumé</span><svg class="ic ext" aria-hidden="true"><use href="#i-ext"/></svg></button>
       <button type="button" class="tl-act" data-act="game"><svg class="ic" aria-hidden="true"><use href="#i-cat"/></svg><span>Cat game</span></button>
@@ -252,10 +253,7 @@
   <!-- 1. HERO / trigger node -->
   <section class="hero wrap" id="top" aria-labelledby="h-name">
     <div class="hero-copy">
-      <div class="hero-meta">
-        <p class="loc" id="p-loc">Davao City, Philippines</p>
-      </div>
-      <h1 id="h-name" data-step="Hi, I'm Joemark">Joemark Basa</h1>
+      <h1 id="h-name" class="sr-only">Joemark Basa</h1>
       <p class="headline" id="p-headline">I turn repetitive work into workflows that run themselves.</p>
       <p class="sub" id="p-sub">Imagine your Monday without the copy-pasting. Your inbox sorts itself, your tracker updates on its own, and the right person gets pinged at the right moment. I build the automations behind that, test them until they break, and leave you a simple guide so your team can run them without me. You get your hours back, and the human side of the work stays in charge.</p>
       <div class="skills-wrap" id="p-skills-wrap"><span class="skills-label mono">Core skills</span><ul class="skills" id="p-skills"><li>Team Leadership</li><li>Workflow Automation</li><li>AI-Assisted Workflows</li><li>Prompt Engineering</li><li>Quality Assurance</li><li>Customer Support</li><li>Project Coordination</li><li>Administrative Support</li><li>E-Learning</li></ul></div>
@@ -263,13 +261,8 @@
         <button class="btn btn-accent" type="button" data-act="book" data-smile>
           <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Book a call
         </button>
-        <a class="btn btn-line" href="#work">See my work<svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
       <ul class="stats" id="stats" aria-label="Highlights"></ul>
-      <div class="run-row">
-        <button class="btn btn-run" id="btn-run" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="run-label">Run workflow</span></button>
-        <span class="run-hint mono" id="run-hint">Walks every node on the page</span>
-      </div>
     </div>
 
     <figure class="face" id="face">
@@ -335,9 +328,6 @@
       <p class="lead">Every job I take goes through the same five nodes.</p>
     </div>
     <div class="flow" id="flow"></div>
-    <div class="flow-actions">
-      <button class="btn btn-line" id="btn-flow" type="button"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Run this flow</button>
-    </div>
   </section>
 
 
@@ -388,34 +378,11 @@
   </div>
 
 <div class="tabpanel" id="tab-team" data-tab="team" role="region" aria-label="Team">
-  <!-- 5b. OFF THE CLOCK -->
-  <section class="group wrap" id="offclock" aria-labelledby="h-off">
+  <!-- 5b. TEAM -->
+  <section class="group wrap" id="teamsec" aria-label="My AI team">
     <div class="oc-teamwrap" id="oc-team"></div>
-    <div class="snode node io" id="n-off" data-step="Off the clock" data-node="offclock" data-chip="offclock">
-      <div class="node-head"><span class="nt">Side quests</span><span class="nm">off the clock</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
-      <h2 id="h-off">Off the clock</h2>
-      <p class="lead" id="oc-sub">What I build and play with when nobody's paying me.</p>
-    </div>
-    <div class="oc" id="oc"></div>
   </section>
-
-
-  <!-- 6. TAKE A BREAK -->
-  <section class="group wrap" id="break" aria-labelledby="h-break">
-    <div class="snode node io break" id="n-break" data-step="Take a break" data-node="break" data-chip="cat">
-      <div class="node-head"><span class="nt">Break</span><span class="nm">side quest</span><span class="st"><i class="dot"></i><svg class="ic chk" aria-hidden="true"><use href="#i-check"/></svg></span></div>
-      <div class="break-body">
-        <div>
-          <h2 id="h-break">Stuck in a meeting?</h2>
-          <p class="lead">Play with my cat. WASD or arrow keys, fish for points, dogs for trouble.</p>
-        </div>
-        <button class="btn btn-line" type="button" id="btn-game"><svg class="ic" aria-hidden="true"><use href="#i-cat"/></svg>Play the cat game</button>
-      </div>
-    </div>
-  </section>
-
-
-  </div>
+</div>
 
 <div class="tabpanel" id="tab-contact" data-tab="contact" role="region" aria-label="Contact">
   <!-- 7. CONTACT / output node -->
@@ -434,6 +401,9 @@
     </div>
   </section>
 
+</div>
+
+<div class="tabpanel" id="tab-faq" data-tab="faq" role="region" aria-label="FAQ">
   <section class="group wrap faq" id="faq" aria-labelledby="h-faq">
     <h2 id="h-faq">Quick answers</h2>
     <details class="faq-item" open><summary>What does Joemark Basa do?</summary><p>Joemark Basa is an AI automation specialist and technical virtual assistant based in Davao City, Philippines. He builds workflow automations in n8n, Power Automate and Claude Code so teams stop copy-pasting. One AI email workflow he built took a priority email from 20 minutes to about 3. He has 5+ years of remote operations and support experience and has shipped 20+ workflow automations.</p></details>
@@ -447,8 +417,6 @@
 </main>
 
 <footer class="footer wrap">
-  <p>Built by Joemark with Claude Code. The photos and clips of me are AI-generated from my likeness, so I'll look a little less polished on a call. Still me, just enhanced.</p>
-  <p class="credit">Team avatars are pixel fan art of each agent's namesake character.</p>
   <p class="mono">&copy; 2026 Joemark Basa · Last updated <span id="last-updated"></span></p>
 </footer>
 

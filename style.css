@@ -1117,3 +1117,83 @@ html.running .pause { bottom: 82px; }
   .toplinks, .top-actions, .nav-scrim, .toplinks > *, .top-actions > * { transition: none !important; }
   .toplinks > *, .top-actions > * { transform: none; }
 }
+
+/* ================= round 2: hero headline, run availability, team yard, toolbox balls, FAQ ================= */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* hero: the headline floats next to the photo, bold italic */
+@media (max-width: 879px) { .hero { grid-template-areas: "head face" "sub sub" "sub2 sub2" "skills skills" "act act" "stats stats"; } }
+.hero .headline {
+  align-self: center; font-weight: 700; font-style: italic; letter-spacing: -.025em; line-height: 1.12;
+  font-size: clamp(1.25rem, 5.4vw, 2rem); max-width: 22ch; animation: hfloat 6s ease-in-out infinite;
+}
+@keyframes hfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+html[data-paused] .hero .headline { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .hero .headline { animation: none; } }
+@media (min-width: 880px) {
+  .hero .headline { font-size: clamp(2.1rem, 3.6vw, 3.3rem); max-width: 17ch; margin: 0 0 22px; }
+}
+@media (max-width: 719px) { .hero-actions { display: none; } }
+
+/* Run workflow only where it makes sense (Work, How I work, Experience, Team) */
+html.no-run .side-run { display: none !important; }
+
+/* team: Joe on top, the crew wanders; the org chart only shows during a run */
+.team-h { font-size: clamp(1.6rem, 4vw, 2.4rem); letter-spacing: -.03em; font-weight: 600; line-height: 1.1; margin-bottom: 18px; }
+.oc-team .org { display: none; }
+.oc-team.org-on .org { display: grid; }
+.oc-team.org-on .team-free { display: none; }
+.team-free { display: flex; flex-direction: column; align-items: center; }
+.team-joe { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; border: 0; background: none; cursor: pointer; color: var(--text); -webkit-tap-highlight-color: transparent; }
+.team-joe img { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; border: 3px solid var(--card); box-shadow: 0 0 0 2px var(--accent), var(--shadow); transition: transform .2s; }
+.team-joe:hover img { transform: scale(1.04); }
+.team-joe:focus-visible img { outline: 2px solid var(--accent); outline-offset: 4px; }
+.tj-name { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.yard-hint { margin: 14px 0 10px; color: var(--muted); font-size: 11.5px; }
+.yard {
+  position: relative; width: 100%; height: 420px; border-radius: 18px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 0%, var(--card), var(--strip) 70%); border: 1px solid var(--line);
+}
+.walker {
+  position: absolute; left: 0; top: 0; width: 76px; padding: 0; border: 0; background: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; color: var(--text); -webkit-tap-highlight-color: transparent; will-change: transform;
+}
+.wk-body { display: block; height: 84px; transform-origin: 50% 100%; }
+.wk-body img { height: 100%; width: auto; image-rendering: pixelated; user-select: none; pointer-events: none; }
+.walker.left .wk-body img { transform: scaleX(-1); }
+.walker.walking .wk-body { animation: wk-bob .42s ease-in-out infinite alternate; }
+@keyframes wk-bob { from { transform: translateY(0) rotate(-2.5deg); } to { transform: translateY(-4px) rotate(2.5deg); } }
+.wk-shadow { display: block; width: 40px; height: 7px; margin-top: -4px; border-radius: 50%; background: rgb(0 0 0 / .16); }
+.wk-name { margin-top: 4px; font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); white-space: nowrap; }
+.walker:hover .wk-name, .walker:focus-visible .wk-name { border-color: var(--accent); color: var(--accent-ink); }
+.walker:focus-visible { outline: none; }
+@media (max-width: 719px) { .yard { height: 380px; } .walker { width: 64px; } .wk-body { height: 68px; } .team-joe img { width: 96px; height: 96px; } }
+@media (prefers-reduced-motion: reduce) { .walker.walking .wk-body { animation: none; } }
+
+/* toolbox: billiard balls */
+.tools { display: block; }
+.pit {
+  position: relative; height: 460px; border-radius: 20px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(ellipse at 50% 30%, #1d6b45, #0f4a2f 75%); box-shadow: inset 0 0 0 10px #5b3a22, inset 0 0 0 12px #3e2715, inset 0 10px 30px rgb(0 0 0 / .45);
+}
+.pit-hint { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-size: 11.5px; color: rgb(255 255 255 / .55); pointer-events: none; }
+.ball {
+  position: absolute; left: 0; top: 0; width: 66px; height: 66px; padding: 0; border: 0; border-radius: 50%; cursor: grab; touch-action: none;
+  display: grid; place-items: center; will-change: transform; -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 6%, rgb(255 255 255 / .35) 12%, transparent 30%),
+              radial-gradient(circle at 50% 50%, var(--b) 0 55%, color-mix(in srgb, var(--b) 55%, #000) 100%);
+  box-shadow: 0 8px 12px -4px rgb(0 0 0 / .55), inset -6px -8px 14px rgb(0 0 0 / .35);
+}
+.ball-disc { width: 56%; height: 56%; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: inset 0 -2px 3px rgb(0 0 0 / .18); position: relative; z-index: 0; }
+.ball-disc img, .ball-disc .ic { width: 70%; height: 70%; object-fit: contain; pointer-events: none; }
+.ball-disc .ic { color: #333; }
+.ball::after { content: ""; position: absolute; left: 22%; top: 14%; width: 26%; height: 16%; border-radius: 50%; background: rgb(255 255 255 / .7); filter: blur(1px); transform: rotate(-30deg); pointer-events: none; }
+.ball.held { cursor: grabbing; box-shadow: 0 16px 22px -6px rgb(0 0 0 / .6), inset -6px -8px 14px rgb(0 0 0 / .35); z-index: 2; }
+.ball:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.ball-tip { position: absolute; left: 0; top: 0; z-index: 5; padding: 5px 10px; border-radius: 999px; background: #fff; color: #111; font-size: 12px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; box-shadow: 0 4px 12px rgb(0 0 0 / .3); }
+.ball-tip.on { opacity: 1; }
+@media (max-width: 719px) { .pit { height: 440px; } }
+
+/* FAQ as its own tab */
+#tab-faq > .faq:first-child { padding-top: 34px; }
+.hero h1.sr-only { grid-area: auto; }

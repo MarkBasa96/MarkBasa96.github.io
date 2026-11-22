@@ -338,17 +338,141 @@
     openDlg($('#dlg-agent'), opener);
   }
 
+  /* Toolbox: every tool is a shiny billiard ball. They drift and collide on their own (silently);
+     grab one (mouse drag, or press and hold on a phone), fling it, and the collisions click. */
+  var BALL_HUE = ['#ff6d3f', '#7c5cff', '#1f8fff', '#16a34a', '#e0447c', '#f5a524', '#0ea5a4', '#8b5e3c'];
   function renderTools() {
-    $('#tools').innerHTML = (P().toolbox || []).map(function (g) {
-      return '<div class="node io tgroup" data-step="Toolbox: ' + esc(g.group) + '"><div class="node-head"><span class="nt">' + esc(g.group) + '</span></div><div class="tchips">' + g.items.map(function (it) {
-        var glyph = it.img ? '<span class="tlogo"><img class="ticon" src="' + esc(it.img) + '" alt="" width="18" height="18" loading="lazy" decoding="async"></span>' : '<span class="tlogo">' + ic('glyph') + '</span>';
-        return '<span class="tchip">' + glyph + esc(it.name) + '</span>';
-      }).join('') + '</div></div>';
-    }).join('');
-    $$('img.ticon').forEach(function (img) {
-      img.addEventListener('error', function () { var s = document.createElement('span'); s.innerHTML = ic('glyph'); img.replaceWith(s.firstChild); });
+    var box = $('#tools'); if (!box) return;
+    var html = '<div class="pit" id="pit" data-step="Toolbox"><p class="pit-hint mono">Grab a ball and throw it</p>', gi = 0;
+    (P().toolbox || []).forEach(function (g) {
+      var hue = BALL_HUE[gi++ % BALL_HUE.length];
+      g.items.forEach(function (it) {
+        html += '<button class="ball" type="button" style="--b:' + hue + '" data-name="' + esc(it.name) + '" aria-label="' + esc(it.name) + ' (' + esc(g.group) + ')">' +
+          '<span class="ball-disc">' + (it.img ? '<img class="ticon" src="' + esc(it.img) + '" alt="" width="26" height="26" draggable="false" loading="lazy" decoding="async">' : ic('glyph')) + '</span>' +
+          '<span class="sr-only">' + esc(it.name) + ', ' + esc(g.group) + '</span></button>';
+      });
     });
+    box.innerHTML = html + '<span class="ball-tip mono" id="ball-tip" aria-hidden="true"></span></div>';
+    $$('img.ticon', box).forEach(function (img) {
+      img.addEventListener('error', function () { var s2 = document.createElement('span'); s2.innerHTML = ic('glyph'); img.replaceWith(s2.firstChild); });
+    });
+    Pit.init($('#pit'));
   }
+
+  var Pit = (function () {
+    var box = null, tip = null, bs = [], raf = 0, last = 0, seen = false, io = null, grab = null, loud = 0, lastClack = 0, nudgeT = 0, W = 0, H = 0;
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function radius() { return W < 520 ? 24 : 33; }
+    function measure() { W = box.clientWidth; H = box.clientHeight; var r = radius(); bs.forEach(function (b) { b.r = r; b.el.style.width = b.el.style.height = (2 * r) + 'px'; }); }
+    function place(b) { b.el.style.transform = 'translate(' + (b.x - b.r).toFixed(1) + 'px,' + (b.y - b.r).toFixed(1) + 'px)'; }
+    function rack() {
+      measure();
+      var r = radius(), cols = Math.max(3, Math.floor((W - 20) / (2 * r + 10)));
+      bs.forEach(function (b, i) {
+        var c = i % cols, row = Math.floor(i / cols);
+        b.x = Math.min(W - r - 2, 14 + r + c * (2 * r + 10) + (row % 2 ? r : 0) + rnd(-3, 3));
+        b.y = Math.min(H - r - 2, 40 + r + row * (2 * r + 8) + rnd(-3, 3));
+        b.vx = reduced() ? 0 : rnd(-60, 60); b.vy = reduced() ? 0 : rnd(-60, 60);
+        place(b);
+      });
+    }
+    function clack(v) {
+      var now = performance.now(); if (now - lastClack < 35 || v < 40) return; lastClack = now;
+      if (window.__JBFeel && window.__JBFeel.clack) window.__JBFeel.clack(v);
+    }
+    function step(dt) {
+      var r, i, j, a, b, dx, dy, d, min, nx, ny, rel, imp, ov, fr = Math.pow(0.55, dt), noisy = grab || performance.now() < loud;
+      for (i = 0; i < bs.length; i++) {
+        a = bs[i]; if (a === grab) continue;
+        a.vx *= fr; a.vy *= fr; a.x += a.vx * dt; a.y += a.vy * dt; r = a.r;
+        if (a.x < r) { a.x = r; if (a.vx < 0) { if (noisy) clack(-a.vx * .6); a.vx = -a.vx * .82; } }
+        if (a.x > W - r) { a.x = W - r; if (a.vx > 0) { if (noisy) clack(a.vx * .6); a.vx = -a.vx * .82; } }
+        if (a.y < r) { a.y = r; if (a.vy < 0) { if (noisy) clack(-a.vy * .6); a.vy = -a.vy * .82; } }
+        if (a.y > H - r) { a.y = H - r; if (a.vy > 0) { if (noisy) clack(a.vy * .6); a.vy = -a.vy * .82; } }
+      }
+      for (i = 0; i < bs.length; i++) for (j = i + 1; j < bs.length; j++) {
+        a = bs[i]; b = bs[j]; dx = b.x - a.x; dy = b.y - a.y; min = a.r + b.r;
+        if (Math.abs(dx) > min || Math.abs(dy) > min) continue;
+        d = Math.hypot(dx, dy); if (d >= min || d === 0) continue;
+        nx = dx / d; ny = dy / d; ov = min - d;
+        var ma = a === grab ? 0 : 1, mb = b === grab ? 0 : 1, sum = ma + mb; if (!sum) continue;
+        a.x -= nx * ov * ma / sum; a.y -= ny * ov * ma / sum; b.x += nx * ov * mb / sum; b.y += ny * ov * mb / sum;
+        rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny; if (rel >= 0) continue;
+        imp = -(1 + .94) * rel / sum;
+        a.vx -= imp * nx * ma; a.vy -= imp * ny * ma; b.vx += imp * nx * mb; b.vy += imp * ny * mb;
+        if (noisy) clack(-rel);
+      }
+      bs.forEach(place);
+    }
+    function energy() { return bs.reduce(function (e, b) { return e + b.vx * b.vx + b.vy * b.vy; }, 0); }
+    function running() { return box && seen && !document.hidden && box.offsetParent && !root.hasAttribute('data-paused'); }
+    function frame(now) {
+      raf = 0; if (!running()) return;
+      var dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+      step(dt / 2); step(dt / 2);
+      /* keep the table alive: when everything has nearly stopped, give one ball a gentle push (never with reduced motion) */
+      if (!grab && !reduced() && now > nudgeT && energy() < bs.length * 120) {
+        var b = bs[Math.floor(Math.random() * bs.length)], ang = rnd(0, Math.PI * 2), sp = rnd(160, 260);
+        b.vx += Math.cos(ang) * sp; b.vy += Math.sin(ang) * sp; nudgeT = now + rnd(1800, 3600);
+      }
+      if (grab || reduced() === false || energy() > 4) raf = requestAnimationFrame(frame);
+    }
+    function wake() { if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
+    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+    function showTip(b) {
+      if (!tip) return;
+      tip.textContent = b.el.dataset.name; tip.classList.add('on');
+      tip.style.transform = 'translate(' + Math.max(4, Math.min(W - tip.offsetWidth - 4, b.x - tip.offsetWidth / 2)).toFixed(0) + 'px,' + Math.max(2, b.y - b.r - 34).toFixed(0) + 'px)';
+    }
+    function hideTip(delay) { clearTimeout(hideTip.t); hideTip.t = setTimeout(function () { if (tip && !grab) tip.classList.remove('on'); }, delay || 0); }
+    function local(e) { var rc = box.getBoundingClientRect(); return { x: e.clientX - rc.left, y: e.clientY - rc.top }; }
+    function onDown(e) {
+      var el = e.target.closest('.ball'); if (!el || (e.button != null && e.button > 0)) return;
+      var b = bs.filter(function (x) { return x.el === el; })[0]; if (!b) return;
+      e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (er) {}
+      if (window.__JBFeel) window.__JBFeel.prime();
+      var p = local(e); grab = b; b.ox = b.x - p.x; b.oy = b.y - p.y; b.hist = [{ x: b.x, y: b.y, t: performance.now() }]; b.vx = b.vy = 0;
+      b.moved = 0; el.classList.add('held'); box.classList.add('grabbing'); showTip(b); wake();
+    }
+    function onMove(e) {
+      if (!grab) return; var b = grab, p = local(e), nx = Math.max(b.r, Math.min(W - b.r, p.x + b.ox)), ny = Math.max(b.r, Math.min(H - b.r, p.y + b.oy)), now = performance.now();
+      b.moved += Math.hypot(nx - b.x, ny - b.y); b.x = nx; b.y = ny;
+      b.hist.push({ x: nx, y: ny, t: now }); while (b.hist.length > 2 && now - b.hist[0].t > 90) b.hist.shift();
+      place(b); showTip(b);
+    }
+    function onUp() {
+      if (!grab) return; var b = grab, h = b.hist, f = h[0], l = h[h.length - 1], dt = Math.max(16, l.t - f.t) / 1000;
+      b.vx = Math.max(-2400, Math.min(2400, (l.x - f.x) / dt)); b.vy = Math.max(-2400, Math.min(2400, (l.y - f.y) / dt));
+      if (performance.now() - l.t > 120) { b.vx = b.vy = 0; }
+      b.el.classList.remove('held'); box.classList.remove('grabbing'); grab = null;
+      loud = performance.now() + 2600; hideTip(b.moved < 6 ? 1400 : 500); wake();
+    }
+    function init(el) {
+      stop(); box = el; if (!box) return; tip = $('#ball-tip', box);
+      bs = $$('.ball', box).map(function (x) { return { el: x, x: 0, y: 0, vx: 0, vy: 0, r: 30 }; });
+      box.addEventListener('pointerdown', onDown);
+      box.addEventListener('pointermove', onMove);
+      box.addEventListener('pointerup', onUp); box.addEventListener('pointercancel', onUp); box.addEventListener('lostpointercapture', onUp);
+      box.addEventListener('focusin', function (e) { var b = bs.filter(function (x) { return x.el === e.target; })[0]; if (b) showTip(b); });
+      box.addEventListener('focusout', function () { hideTip(); });
+      box.addEventListener('keydown', function (e) {
+        var b = bs.filter(function (x) { return x.el === e.target; })[0]; if (!b || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault(); var ang = rnd(0, Math.PI * 2); b.vx = Math.cos(ang) * 900; b.vy = Math.sin(ang) * 900; loud = performance.now() + 2000; wake();
+      });
+      if (io) io.disconnect();
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.racked) { box.dataset.racked = '1'; rack(); } wake(); } else stop(); });
+        io.observe(box);
+      } else { seen = true; rack(); wake(); }
+    }
+    document.addEventListener('visibilitychange', wake);
+    window.addEventListener('resize', function () {
+      if (!box || !box.offsetParent) return; measure();
+      bs.forEach(function (b) { b.x = Math.min(Math.max(b.r, b.x), W - b.r); b.y = Math.min(Math.max(b.r, b.y), H - b.r); place(b); }); wake();
+    });
+    new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
+    return { init: init, wake: wake };
+  })();
 
   /* off the clock */
   function monogram(name, hue) { return '<span class="av" style="--hue:' + esc(hue || '#ff6d3f') + '" aria-hidden="true">' + esc(name.charAt(0)) + '</span>'; }
@@ -397,32 +521,85 @@
     }
     svg.setAttribute('width', or.width); svg.setAttribute('height', or.height); svg.innerHTML = d.join('');
   }
+  /* Team tab: Joe's photo on top, the agents wander freely below. The org chart only appears during a Run. */
   function renderOffClock() {
-    var oc = P().off_clock, box = $('#oc'); if (!oc || !box) return;
-    setText('oc-sub', oc.sub);
-    var n = window.JBBrainCount, brainText = oc.brain.text.replace('with {N} notes', n ? 'with ' + n.toLocaleString('en-US') + ' notes' : 'full of notes');
-    var h = '<div class="oc-top"><article class="node io oc-card oc-brain" data-step="The brain I built"><div class="node-head"><span class="nt">' + esc(oc.brain.title) + '</span></div><div class="oc-body"><p>' + esc(brainText) + '</p><a class="btn btn-line btn-sm" href="' + esc(oc.brain.href) + '">' + esc(oc.brain.link) + ic('arrow', 'up') + '</a></div></article>' +
-      '<article class="node io oc-card oc-raph" data-step="Meet Raphael"><div class="node-head"><span class="nt">' + esc(oc.raphael.title) + '</span></div><div class="oc-body"><p>' + esc(oc.raphael.text) + '</p></div></article></div>';
-    h += '<article class="node io oc-cmds" data-step="How I talk to them"><div class="node-head"><span class="nt">' + esc(oc.commands.title) + '</span></div><ul class="cmd-list">' + oc.commands.items.map(function (c) {
-      return '<li><span class="say mono' + (c.plain ? ' plain' : '') + '">' + (c.plain ? '' : '&ldquo;') + esc(c.say) + (c.plain ? '' : '&rdquo;') + '</span><span class="does">' + esc(c.does) + '</span></li>';
-    }).join('') + '</ul></article>';
+    var oc = P().off_clock, tb = $('#oc-team'); if (!oc || !tb) return;
     var T = oc.team, levi = T.agents[0], depts = T.agents.slice(1);
-    var ht = '<div class="oc-team"><h3 class="oc-h mono">' + esc(T.title) + '</h3><div class="org" id="org"><svg class="org-wires" aria-hidden="true"></svg><span class="peer-tag mono" hidden>peer</span>' +
+    var crew = [[T.raphael, 'raphael'], [T.jarvis, 'jarvis']].concat(T.agents.map(function (a) { return [a, a.name.toLowerCase()]; }));
+    var ht = '<div class="oc-team"><h2 class="team-h">' + esc(T.title) + '</h2>' +
+      '<div class="team-free"><button class="team-joe" type="button" data-agent="joe" aria-label="About ' + esc(T.joe.name) + '"><img src="' + esc(T.joe.img) + '" alt="" width="120" height="120" decoding="async"><span class="tj-name mono">' + esc(T.joe.name) + '</span></button>' +
+      '<p class="yard-hint mono">Tap anyone to see what they do</p>' +
+      '<div class="yard" id="yard">' + crew.map(function (c) {
+        var a = c[0], id = c[1];
+        return '<button class="walker" type="button" data-agent="' + esc(id) + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body"><img class="spr-front" src="assets/team/' + esc(a.sprite || id) + '-front.webp" alt="" draggable="false" decoding="async" data-name="' + esc(a.name) + '" data-hue="' + esc(a.hue || '') + '"></span><i class="wk-shadow" aria-hidden="true"></i><span class="wk-name mono">' + esc(a.name) + '</span></button>';
+      }).join('') + '</div></div>' +
+      '<div class="org" id="org"><svg class="org-wires" aria-hidden="true"></svg><span class="peer-tag mono" hidden>peer</span>' +
       '<div class="org-row org-r0">' + orgNode(T.joe, 'joe') + '</div>' +
       '<div class="org-row org-r1"><div class="org-c2">' + orgNode(T.raphael, 'raphael') + '</div><div class="org-c3">' + orgNode(T.jarvis, 'jarvis') + '</div></div>' +
       '<div class="org-row org-r2">' + orgNode(levi, 'levi') + '</div>' +
-      '<div class="org-row org-r3">' + depts.map(function (a) { var id = a.name.toLowerCase(); return '<div class="dept"><span class="dept-label mono">' + esc(a.dept) + '</span>' + orgNode(a, id) + '</div>'; }).join('') + '</div></div>' +
-      '<p class="oc-note">' + esc(T.chart_note) + '</p>' +
-      '<p class="retired mono">Retired: ' + T.retired.map(function (r) { return esc(r.name) + ' (' + esc(r.role) + ')'; }).join(' · ') + '</p><p class="oc-note">' + esc(T.note) + '</p></div>';
-    h += '<div class="oc-hobby" data-step="When I\'m not building"><h3 class="oc-h mono">' + esc(oc.hobbies.title) + '</h3><ul class="hobby-grid">' + oc.hobbies.items.map(function (x) {
-      return '<li class="node hobby"><span class="hico">' + ic(x.icon) + '</span><b>' + esc(x.name) + '</b><p>' + esc(x.text) + '</p></li>';
-    }).join('') + '</ul></div>';
-    var tb = $('#oc-team'); if (tb) tb.innerHTML = ht;
-    box.innerHTML = h;
-    layoutOrg();
+      '<div class="org-row org-r3">' + depts.map(function (a) { var id = a.name.toLowerCase(); return '<div class="dept"><span class="dept-label mono">' + esc(a.dept) + '</span>' + orgNode(a, id) + '</div>'; }).join('') + '</div></div></div>';
+    tb.innerHTML = ht;
+    Yard.init($('#yard'));
     if (orgRO) orgRO.disconnect();
     if ('ResizeObserver' in window) { orgRO = new ResizeObserver(layoutOrg); orgRO.observe($('#org')); }
   }
+  function teamOrg(on) {
+    var t = $('.oc-team'); if (!t) return;
+    if (t.classList.contains('org-on') === on) return;
+    t.classList.toggle('org-on', on);
+    if (on) { layoutOrg(); Yard.stop(); } else Yard.wake();
+  }
+
+  /* the wandering crew: each walker picks a spot, strolls there, idles, repeats */
+  var Yard = (function () {
+    var box = null, ws = [], raf = 0, last = 0, seen = false, io = null;
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function size() { return { w: box.clientWidth, h: box.clientHeight }; }
+    function pick(w) {
+      var s = size(); w.tx = rnd(0, Math.max(0, s.w - w.el.offsetWidth)); w.ty = rnd(8, Math.max(8, s.h - w.el.offsetHeight - 4));
+      w.speed = rnd(26, 46);
+    }
+    function place(w) { w.el.style.transform = 'translate(' + w.x.toFixed(1) + 'px,' + w.y.toFixed(1) + 'px)'; w.el.style.zIndex = Math.round(w.y) + 10; }
+    function running() { return box && seen && !document.hidden && !reduced() && !root.hasAttribute('data-paused') && box.offsetParent && !box.closest('.org-on'); }
+    function frame(now) {
+      raf = 0; if (!running()) return;
+      var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
+      ws.forEach(function (w) {
+        if (w.wait > 0) { w.wait -= dt; if (w.wait <= 0) { pick(w); w.el.classList.add('walking'); } return; }
+        var dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
+        if (d < 1.5) { w.wait = rnd(0.8, 3.2); w.el.classList.remove('walking'); return; }
+        var step = Math.min(d, w.speed * dt); w.x += dx / d * step; w.y += dy / d * step;
+        if (Math.abs(dx) > 2) w.el.classList.toggle('left', dx < 0);
+        place(w);
+      });
+      raf = requestAnimationFrame(frame);
+    }
+    function wake() { if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
+    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; ws.forEach(function (w) { w.el.classList.remove('walking'); }); }
+    function scatter() {
+      var s = size(), n = ws.length, cols = Math.max(2, Math.round(Math.sqrt(n * s.w / Math.max(1, s.h))));
+      var rows = Math.ceil(n / cols);
+      ws.forEach(function (w, i) {
+        var bw = w.el.offsetWidth || 70, bh = w.el.offsetHeight || 96, c = i % cols, r = Math.floor(i / cols);
+        w.x = Math.max(0, Math.min(s.w - bw, (c + .5) * s.w / cols - bw / 2 + rnd(-14, 14)));
+        w.y = Math.max(8, Math.min(s.h - bh - 4, (r + .5) * s.h / rows - bh / 2 + rnd(-10, 10)));
+        w.wait = rnd(0, 2.5); w.el.classList.remove('walking'); place(w);
+      });
+    }
+    function init(el) {
+      stop(); box = el; if (!box) return;
+      ws = $$('.walker', box).map(function (b) { return { el: b, x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 30 }; });
+      if (io) io.disconnect();
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.placed) { box.dataset.placed = '1'; scatter(); } wake(); } else stop(); });
+        io.observe(box);
+      } else { seen = true; scatter(); wake(); }
+    }
+    document.addEventListener('visibilitychange', wake);
+    window.addEventListener('resize', function () { if (box && box.offsetParent) scatter(); });
+    new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
+    return { init: init, wake: wake, stop: stop };
+  })();
   window.addEventListener('resize', layoutOrg);
   document.addEventListener('jb-brain-count', renderOffClock);
 
@@ -504,7 +681,10 @@
   }
   function openResume() { window.open(P().resume_url, '_blank', 'noopener'); }
   /* ---------- tabs: one page at a time, like a sidebar app ---------- */
-  var TABS = ['home', 'work', 'how', 'brain', 'experience', 'toolbox', 'team', 'contact'];
+  var TABS = ['home', 'work', 'how', 'brain', 'experience', 'toolbox', 'team', 'contact', 'faq'];
+  var RUN_TABS = ['work', 'how', 'experience', 'team'];   /* tabs that get a Run workflow button */
+  function runAvail(name) { root.classList.toggle('no-run', RUN_TABS.indexOf(name) < 0); }
+  runAvail('home');
   var TAB_ALIAS = { top: 'home', showcase: 'home', offclock: 'team', 'break': 'team' };
   var curTab = 'home';
   function tabOf(id) {
@@ -537,7 +717,7 @@
         var on = a.dataset.tab === name; a.classList.toggle('on', on);
         if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
       });
-      curTab = name; intro($('#tab-' + name));
+      curTab = name; runAvail(name); intro($('#tab-' + name));
       if (!opts.noHash) { try { history.replaceState(null, '', name === 'home' ? location.pathname + location.search : '#' + name); } catch (e) {} }
       if (!opts.keepScroll) window.scrollTo(0, 0);
       layoutAll(); layoutOrg(); setTimeout(function () { layoutAll(); layoutOrg(); }, 80);
@@ -605,7 +785,7 @@
   });
   $('#btn-theme').addEventListener('click', toggleTheme);
   $('#btn-copy').addEventListener('click', copyEmail);
-  $('#btn-game').addEventListener('click', function () { if (window.CatGame) window.CatGame.open(); });
+  if ($('#btn-game')) $('#btn-game').addEventListener('click', function () { if (window.CatGame) window.CatGame.open(); });
 
   /* pause control */
   var pauseBtn = $('#btn-pause');
@@ -666,9 +846,9 @@
   function clearNode(n) { n.classList.remove('lit', 'done'); setBar(n, 0); var t = $('.rtxt', n); if (t) t.textContent = ''; }
   function scrollToNode(n, instant) { n.scrollIntoView({ behavior: instant || reduced() ? 'auto' : 'smooth', block: 'center' }); }
 
-  /* phones and tablets: one Run button at the top of every tab except Home (its hero already has one) */
+  /* phones and tablets: one Run button at the top of each tab in RUN_TABS (desktop uses the sidebar button) */
   $$('.tabpanel').forEach(function (p) {
-    if (p.dataset.tab === 'home') return;
+    if (RUN_TABS.indexOf(p.dataset.tab) < 0) return;
     var row = document.createElement('div'); row.className = 'tab-run-row wrap';
     row.innerHTML = '<button class="btn btn-run tab-run" type="button">' + ic('play') + '<span>Run workflow</span></button>';
     p.insertBefore(row, p.firstChild);
@@ -819,17 +999,17 @@
       var pageRun = on && page, flowRun = on && !page;
       if (isReduced) {
         setRunBtn(pageRun ? 'stop' : 'play', pageRun ? 'Stop' : 'Step through the page');
-        runHint.textContent = pageRun ? 'Next / Back in the bar below. Esc stops.' : 'Steps through every node on the page, one at a time';
-        flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Step through this flow');
+        if (runHint) runHint.textContent = pageRun ? 'Next / Back in the bar below. Esc stops.' : 'Steps through every node on the page, one at a time';
+        if (flowBtn) flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Step through this flow');
       } else {
         setRunBtn(pageRun ? 'stop' : 'play', pageRun ? 'Stop' : 'Run workflow');
-        if (!pageRun) runHint.textContent = S.state === 'done' && page ? 'Done. That was the whole page.' : 'Walks every node on the page. Pause, skip or stop any time.';
-        else runHint.textContent = 'Step ' + (S.idx + 1) + ' of ' + S.steps.length + (S.speed !== 1 ? ' · ' + S.speed + '×' : '');
-        flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Run this flow');
+        if (runHint) { if (!pageRun) runHint.textContent = S.state === 'done' && page ? 'Done. That was the whole page.' : 'Walks every node on the page. Pause, skip or stop any time.';
+        else runHint.textContent = 'Step ' + (S.idx + 1) + ' of ' + S.steps.length + (S.speed !== 1 ? ' · ' + S.speed + '×' : ''); }
+        if (flowBtn) flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Run this flow');
       }
     }
     function setRunBtn(icon, label) {
-      runLabel.textContent = label; $('use', runBtn).setAttribute('href', '#i-' + icon);
+      if (runBtn) { runLabel.textContent = label; $('use', runBtn).setAttribute('href', '#i-' + icon); }
       $$('.tab-run').forEach(function (b) { $('span', b).textContent = icon === 'stop' ? 'Stop' : (reduced() ? 'Step through the page' : 'Run workflow'); $('use', b).setAttribute('href', '#i-' + icon); });
       if (runTabBtn) { runTabLabel.textContent = icon === 'stop' ? 'Stop' : (reduced() ? 'Step through this page' : 'Run this page'); $('use', runTabBtn).setAttribute('href', '#i-' + icon); }
     }
@@ -884,7 +1064,7 @@
     function complete() {
       S.state = 'done'; var n = S.steps.length;
       dropLayer(); ui(); toast('Workflow complete · ' + n + ' steps', 4200);
-      clearTimeout(hideT); hideT = setTimeout(function () { if (S.state === 'done') { S.state = 'idle'; ui(); } }, 4200);
+      clearTimeout(hideT); hideT = setTimeout(function () { if (S.state === 'done') { S.state = 'idle'; teamOrg(false); ui(); } }, 4200);
       clearTimeout(clearT); clearT = setTimeout(function () { if (S.state === 'idle') S.steps.forEach(clearNode); }, 14000);
       listeners(false);
     }
@@ -893,7 +1073,7 @@
     function start(scope) {
       if (active()) stop(true);
       clearTimeout(hideT); clearTimeout(clearT);
-      S.scope = scope; S.steps = collect(scope);
+      S.scope = scope; teamOrg(scope === 'page' && curTab === 'team'); S.steps = collect(scope);
       if (!S.steps.length) return;
       S.steps.forEach(clearNode);
       S.state = 'running'; S.autoPaused = false; S.wires = []; listeners(true);
@@ -901,7 +1081,7 @@
     }
     function stop(silent) {
       cancelAnimationFrame(S.raf); S.raf = 0; listeners(false);
-      S.steps.forEach(clearNode); dropLayer();
+      S.steps.forEach(clearNode); dropLayer(); teamOrg(false);
       S.state = 'idle'; S.idx = -1; ui();
     }
     function pause(auto) { if (S.state !== 'running') return; S.state = 'paused'; S.autoPaused = !!auto; cancelAnimationFrame(S.raf); S.raf = 0; ui(); }
@@ -942,8 +1122,8 @@
 
     /* ----- wiring ----- */
     function pageToggle() { if (active() && S.scope === 'page') stop(); else start('page'); }
-    runBtn.addEventListener('click', pageToggle); $$('.tab-run').forEach(function (b) { b.addEventListener('click', pageToggle); }); if (runTabBtn) runTabBtn.addEventListener('click', pageToggle);
-    flowBtn.addEventListener('click', function () { if (active() && S.scope === 'flow') stop(); else start('flow'); });
+    if (runBtn) runBtn.addEventListener('click', pageToggle); $$('.tab-run').forEach(function (b) { b.addEventListener('click', pageToggle); }); if (runTabBtn) runTabBtn.addEventListener('click', pageToggle);
+    if (flowBtn) flowBtn.addEventListener('click', function () { if (active() && S.scope === 'flow') stop(); else start('flow'); });
     rbPlay.addEventListener('click', toggle); $('#rb-next').addEventListener('click', next); $('#rb-back').addEventListener('click', back);
     $('#rb-stop').addEventListener('click', function () { stop(); }); rbSpeed.addEventListener('click', cycleSpeed);
     window.addEventListener('resize', queueRedraw);
@@ -1171,7 +1351,7 @@
       { g: 'Actions', label: 'Open résumé (PDF)', icon: 'doc', run: function () { openResume(); } },
       { g: 'Actions', label: 'Toggle theme', icon: 'sun', run: function () { toggleTheme(); } },
       { g: 'Actions', label: Face.isOn() ? 'Turn the light off' : 'Turn the light on', icon: 'bulb', run: function () { Face.toggle(); } },
-      { g: 'Actions', label: 'Run workflow (this page)', icon: 'play', run: function () { Run.start('page'); } },
+      RUN_TABS.indexOf(curTab) >= 0 ? { g: 'Actions', label: 'Run workflow (this page)', icon: 'play', run: function () { Run.start('page'); } } : null,
       { g: 'Actions', label: 'Play cat game', icon: 'cat', run: function () { if (window.CatGame) window.CatGame.open(); } },
       { g: 'Pages', label: 'Home', icon: 'home', run: function () { jump('home'); } },
       { g: 'Pages', label: 'Work', icon: 'grid', run: function () { jump('work'); } },
@@ -1180,8 +1360,9 @@
       { g: 'Pages', label: 'Experience', icon: 'briefcase', run: function () { jump('experience'); } },
       { g: 'Pages', label: 'Toolbox', icon: 'spark', run: function () { jump('toolbox'); } },
       { g: 'Pages', label: 'Team', icon: 'bot', run: function () { jump('team'); } },
-      { g: 'Pages', label: 'Contact', icon: 'mail', run: function () { jump('contact'); } }
-    ];
+      { g: 'Pages', label: 'Contact', icon: 'mail', run: function () { jump('contact'); } },
+      { g: 'Pages', label: 'FAQ', icon: 'quiz', run: function () { jump('faq'); } }
+    ].filter(Boolean);
     projects().forEach(function (p) {
       list.push({ g: 'Projects', label: p.name, hint: p.visibility === 'public' ? '' : 'private', icon: p.icon || 'glyph', img: p.icon_img || '', run: function (o) {
         if (p.visibility === 'public') openProject(p.id, o); else { filter = 'all'; renderProjects(); jump('lab-' + p.id); }
@@ -1341,8 +1522,17 @@
       on = !on; try { localStorage.setItem('jb-sound', on ? 'on' : 'off'); } catch (e) {}
       ui(); if (on) play('confirm');
     });
+    function clack(v) {
+      if (!on) return; var c = ensure(); if (!c || c.state !== 'running') return;
+      var t = c.currentTime + 0.002, amp = Math.min(0.2, 0.035 + v * 0.00011), src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = noise(c); f.type = 'bandpass'; f.frequency.value = 2400 + Math.random() * 900; f.Q.value = 2.4;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(amp, t + 0.0015); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      src.connect(f); f.connect(g); g.connect(c.destination); src.start(t, Math.random() * 0.1); src.stop(t + 0.07);
+      tone(c, t, 1900 + Math.random() * 300, 1300, 0.035, amp * 0.45);
+    }
     ui();
-    return { play: play };
+    window.__JBFeel = { clack: clack, prime: function () { if (on) ensure(); } };
+    return { play: play, clack: clack };
   })();
 
   /* ---------- Demi, the pixel cat that lives next to the portrait ---------- */
