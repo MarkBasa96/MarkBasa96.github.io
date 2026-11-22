@@ -531,7 +531,10 @@
       '<p class="yard-hint mono">Tap anyone to see what they do</p>' +
       '<div class="yard" id="yard">' + crew.map(function (c) {
         var a = c[0], id = c[1];
-        return '<button class="walker" type="button" data-agent="' + esc(id) + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body"><img class="spr-front" src="assets/team/' + esc(a.sprite || id) + '-front.webp" alt="" draggable="false" decoding="async" data-name="' + esc(a.name) + '" data-hue="' + esc(a.hue || '') + '"></span><i class="wk-shadow" aria-hidden="true"></i><span class="wk-name mono">' + esc(a.name) + '</span></button>';
+        var src = 'assets/team/' + esc(a.sprite || id) + '-front.webp';
+        return '<button class="walker" type="button" data-agent="' + esc(id) + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body">' +
+          '<img class="wk-top" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-l" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-r" src="' + src + '" alt="" draggable="false" decoding="async">' +
+          '</span><i class="wk-shadow" aria-hidden="true"></i></button>';
       }).join('') + '</div></div>' +
       '<div class="org" id="org"><svg class="org-wires" aria-hidden="true"></svg><span class="peer-tag mono" hidden>peer</span>' +
       '<div class="org-row org-r0">' + orgNode(T.joe, 'joe') + '</div>' +
@@ -550,57 +553,123 @@
     if (on) { layoutOrg(); Yard.stop(); } else Yard.wake();
   }
 
-  /* the wandering crew: each walker picks a spot, strolls there, idles, repeats */
+  /* The crew: agents stroll over to a teammate, stop beside them facing each other for a short chat,
+     then wander off again. Anyone walking yields to whoever is in their way instead of bumping into them. */
   var Yard = (function () {
-    var box = null, ws = [], raf = 0, last = 0, seen = false, io = null;
+    var box = null, ws = [], raf = 0, last = 0, seen = false, io = null, GAP = 66;
     function rnd(a, b) { return a + Math.random() * (b - a); }
-    function size() { return { w: box.clientWidth, h: box.clientHeight }; }
-    function pick(w) {
-      var s = size(); w.tx = rnd(0, Math.max(0, s.w - w.el.offsetWidth)); w.ty = rnd(8, Math.max(8, s.h - w.el.offsetHeight - 4));
-      w.speed = rnd(26, 46);
-    }
+    function W() { return box.clientWidth; }
+    function H() { return box.clientHeight; }
+    function bw(w) { return w.el.offsetWidth || 64; }
+    function bh(w) { return w.el.offsetHeight || 80; }
+    function clampX(w, x) { return Math.max(0, Math.min(W() - bw(w), x)); }
+    function clampY(w, y) { return Math.max(6, Math.min(H() - bh(w) - 2, y)); }
     function place(w) { w.el.style.transform = 'translate(' + w.x.toFixed(1) + 'px,' + w.y.toFixed(1) + 'px)'; w.el.style.zIndex = Math.round(w.y) + 10; }
+    function face(w, dir) { w.el.classList.toggle('face-l', dir < 0); w.el.classList.toggle('face-r', dir > 0); }
+    function setState(w, st) {
+      w.st = st; w.el.classList.toggle('walking', st === 'walk'); w.el.classList.toggle('talking', st === 'chat');
+      if (st !== 'walk' && st !== 'chat') face(w, 0);
+    }
+    function free(o) { return o.st === 'idle' && !o.host && !o.friend; }
+    var SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else */
+    function taken(w, x, y, skip) {
+      return ws.some(function (o) {
+        if (o === w || o === skip) return false;
+        if (Math.abs(o.x - x) < SX && Math.abs(o.y - y) < SY) return true;
+        return o.st === 'walk' && Math.abs(o.tx - x) < SX && Math.abs(o.ty - y) < SY;
+      });
+    }
+    function spot(w) {
+      for (var i = 0; i < 24; i++) { var x = clampX(w, rnd(0, W())), y = clampY(w, rnd(0, H())); if (!taken(w, x, y)) { w.tx = x; w.ty = y; return; } }
+      w.tx = w.x; w.ty = w.y;   /* nowhere free right now: stay put */
+    }
+    function plan(w) {
+      w.friend = null; w.blocked = 0; w.via = null; w.detours = 0;
+      var pals = ws.filter(function (o) { return o !== w && free(o); });
+      if (pals.length && Math.random() < .7) {
+        var f = pals[Math.floor(Math.random() * pals.length)], first = (w.x < f.x ? -1 : 1), ty = clampY(w, f.y), tx = null;
+        [first, -first].forEach(function (side) {
+          var x = f.x + side * GAP;
+          if (tx === null && x >= 0 && x <= W() - bw(w) && !taken(w, x, ty, f)) tx = x;
+        });
+        if (tx !== null) { w.tx = tx; w.ty = ty; w.friend = f; f.host = w; f.wait = 99; }   /* the friend stays put until we arrive */
+        else spot(w);
+      } else spot(w);
+      w.speed = rnd(32, 44); setState(w, 'walk');
+    }
+    function release(w) { if (w.friend) { w.friend.host = null; if (w.friend.st === 'idle') w.friend.wait = rnd(.4, 1.5); w.friend = null; } }
+    function blockedBy(w, dx, dy, d) {
+      var ux = dx / d, uy = dy / d;
+      for (var i = 0; i < ws.length; i++) {
+        var o = ws[i]; if (o === w) continue;   /* includes the friend: never walk through them to reach their far side */
+        var ox = o.x - w.x, oy = o.y - w.y;
+        if (Math.abs(ox) < SX && Math.abs(oy) < SY && ox * ux + oy * uy > 0) return o;
+      }
+      return null;
+    }
     function running() { return box && seen && !document.hidden && !reduced() && !root.hasAttribute('data-paused') && box.offsetParent && !box.closest('.org-on'); }
     function frame(now) {
       raf = 0; if (!running()) return;
       var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
       ws.forEach(function (w) {
-        if (w.wait > 0) { w.wait -= dt; if (w.wait <= 0) { pick(w); w.el.classList.add('walking'); } return; }
+        if (w.st === 'chat') {
+          w.wait -= dt;
+          if (w.wait <= 0) { var f = w.friend; release(w); setState(w, 'idle'); w.wait = rnd(.2, .8); if (f && f.st === 'chat') { f.friend = null; setState(f, 'idle'); f.wait = rnd(1.2, 2.6); } }
+          return;
+        }
+        if (w.st === 'idle') { if (!w.host) { w.wait -= dt; if (w.wait <= 0) plan(w); } return; }
+        /* walking */
+        if (w.friend && w.friend.st === 'walk') { release(w); spot(w); }
+        if (w.via) {   /* stepping around someone: walk to the side point first */
+          var vx = w.via.x - w.x, vy = w.via.y - w.y, vd = Math.hypot(vx, vy);
+          if (vd < 1.5) w.via = null;
+          else {
+            if (blockedBy(w, vx, vy, vd)) { w.via = null; w.blocked = 1.3; }
+            else { var vs = Math.min(vd, w.speed * dt); w.x += vx / vd * vs; w.y += vy / vd * vs; if (Math.abs(vx) > 1) face(w, vx); w.el.classList.add('walking'); place(w); return; }
+          }
+        }
         var dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
-        if (d < 1.5) { w.wait = rnd(0.8, 3.2); w.el.classList.remove('walking'); return; }
+        if (d < 1.5) {
+          var f = w.friend;
+          if (f) {
+            setState(w, 'chat'); setState(f, 'chat'); f.friend = w; f.host = null;
+            w.wait = f.wait = rnd(2.6, 5); face(w, f.x - w.x); face(f, w.x - f.x);
+          } else { setState(w, 'idle'); w.wait = rnd(.8, 2.6); }
+          return;
+        }
+        var ob = blockedBy(w, dx, dy, d);
+        if (ob) {   /* someone is in the way: pause, then step around them; if that fails twice, choose somewhere else */
+          w.blocked += dt; w.el.classList.remove('walking');
+          if (w.blocked > 0.6 && w.detours < 2) {
+            var up = w.y > ob.y ? 1 : -1, vy2 = clampY(w, ob.y + up * (SY + 8));
+            if (Math.abs(vy2 - ob.y) < SY) vy2 = clampY(w, ob.y - up * (SY + 8));
+            var vx2 = clampX(w, w.x + Math.sign(dx || 1) * 30);
+            if (Math.abs(vy2 - ob.y) >= SY && !taken(w, vx2, vy2, w.friend)) { w.via = { x: vx2, y: vy2 }; w.detours++; w.blocked = 0; }
+          }
+          if (w.blocked > 1.4) { release(w); spot(w); w.blocked = 0; w.detours = 0; w.via = null; }
+          return;
+        }
+        w.blocked = 0; w.el.classList.add('walking');
         var step = Math.min(d, w.speed * dt); w.x += dx / d * step; w.y += dy / d * step;
-        if (Math.abs(dx) > 2) w.el.classList.toggle('left', dx < 0);
-      });
-      /* personal space: walkers that bump into each other drift apart instead of stacking */
-      var sw = box.clientWidth, sh = box.clientHeight;
-      for (var i = 0; i < ws.length; i++) for (var j = i + 1; j < ws.length; j++) {
-        var a = ws[i], c = ws[j], ox = c.x - a.x, oy = c.y - a.y, gx = 58 - Math.abs(ox), gy = 70 - Math.abs(oy);
-        if (gx <= 0 || gy <= 0) continue;
-        var sx = ox ? Math.sign(ox) : (i % 2 ? 1 : -1), push = Math.min(gx, 40) * dt * 2.2;
-        a.x -= sx * push; c.x += sx * push;
-        if (gy < 40) { var sy = oy ? Math.sign(oy) : 1; a.y -= sy * push * .5; c.y += sy * push * .5; }
-      }
-      ws.forEach(function (w) {
-        var bw = w.el.offsetWidth, bh = w.el.offsetHeight;
-        w.x = Math.max(0, Math.min(sw - bw, w.x)); w.y = Math.max(8, Math.min(sh - bh - 4, w.y)); place(w);
+        if (Math.abs(dx) > 1) face(w, dx);
+        place(w);
       });
       raf = requestAnimationFrame(frame);
     }
     function wake() { if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
-    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; ws.forEach(function (w) { w.el.classList.remove('walking'); }); }
+    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; ws.forEach(function (w) { w.el.classList.remove('walking', 'talking'); }); }
     function scatter() {
-      var s = size(), n = ws.length, cols = Math.max(2, Math.round(Math.sqrt(n * s.w / Math.max(1, s.h))));
-      var rows = Math.ceil(n / cols);
+      var n = ws.length, cols = Math.max(2, Math.round(Math.sqrt(n * W() / Math.max(1, H())))), rows = Math.ceil(n / cols);
       ws.forEach(function (w, i) {
-        var bw = w.el.offsetWidth || 70, bh = w.el.offsetHeight || 96, c = i % cols, r = Math.floor(i / cols);
-        w.x = Math.max(0, Math.min(s.w - bw, (c + .5) * s.w / cols - bw / 2 + rnd(-14, 14)));
-        w.y = Math.max(8, Math.min(s.h - bh - 4, (r + .5) * s.h / rows - bh / 2 + rnd(-10, 10)));
-        w.wait = rnd(0, 2.5); w.el.classList.remove('walking'); place(w);
+        var c = i % cols, r = Math.floor(i / cols);
+        w.x = clampX(w, (c + .5) * W() / cols - bw(w) / 2 + rnd(-10, 10));
+        w.y = clampY(w, (r + .5) * H() / rows - bh(w) / 2 + rnd(-8, 8));
+        w.friend = w.host = null; setState(w, 'idle'); w.wait = rnd(.3, 3); place(w);
       });
     }
     function init(el) {
       stop(); box = el; if (!box) return;
-      ws = $$('.walker', box).map(function (b) { return { el: b, x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 30 }; });
+      ws = $$('.walker', box).map(function (b) { return { el: b, x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 36, st: 'idle', friend: null, host: null, blocked: 0 }; });
       if (io) io.disconnect();
       if ('IntersectionObserver' in window) {
         io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.placed) { box.dataset.placed = '1'; scatter(); } wake(); } else stop(); });

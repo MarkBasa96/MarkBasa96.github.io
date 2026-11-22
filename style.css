@@ -1156,24 +1156,38 @@ html.no-run .side-run { display: none !important; }
 .tj-name { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .yard-hint { margin: 14px 0 10px; color: var(--muted); font-size: 11.5px; }
 .yard {
-  position: relative; width: 100%; height: 420px; border-radius: 18px; overflow: hidden;
+  position: relative; z-index: 0; isolation: isolate; width: 100%; height: 420px; overflow: hidden; contain: paint;
   background: transparent; border: 0;
 }
 .walker {
-  position: absolute; left: 0; top: 0; width: 76px; padding: 0; border: 0; background: none; cursor: pointer;
+  position: absolute; left: 0; top: 0; width: 72px; padding: 0; border: 0; background: none; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; color: var(--text); -webkit-tap-highlight-color: transparent; will-change: transform;
 }
-.wk-body { display: block; height: 84px; transform-origin: 50% 100%; }
-.wk-body img { height: 100%; width: auto; image-rendering: pixelated; user-select: none; pointer-events: none; }
-.walker.left .wk-body img { transform: scaleX(-1); }
-.walker.walking .wk-body { animation: wk-bob .42s ease-in-out infinite alternate; }
-@keyframes wk-bob { from { transform: translateY(0) rotate(-2.5deg); } to { transform: translateY(-4px) rotate(2.5deg); } }
-.wk-shadow { display: block; width: 40px; height: 7px; margin-top: -4px; border-radius: 50%; background: rgb(0 0 0 / .16); }
-.wk-name { margin-top: 4px; font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); white-space: nowrap; }
-.walker:hover .wk-name, .walker:focus-visible .wk-name { border-color: var(--accent); color: var(--accent-ink); }
-.walker:focus-visible { outline: none; }
-@media (max-width: 719px) { .yard { height: 380px; } .walker { width: 64px; } .wk-body { height: 68px; } .team-joe img { width: 96px; height: 96px; } }
-@media (prefers-reduced-motion: reduce) { .walker.walking .wk-body { animation: none; } }
+.walker:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+/* each sprite is drawn three times: the upper body, and the left and right leg, so the legs can step */
+.wk-body { position: relative; display: block; height: 84px; transform-origin: 50% 100%; transition: transform .28s ease; }
+.wk-body img { display: block; height: 100%; width: auto; image-rendering: pixelated; user-select: none; -webkit-user-select: none; pointer-events: none; }
+.wk-top { clip-path: inset(0 0 24% 0); }
+.wk-leg { position: absolute; left: 0; top: 0; }
+.wk-l { clip-path: inset(75% 50% 0 0); }
+.wk-r { clip-path: inset(75% 0 0 50%); }
+/* turn toward where they are going (or toward who they are talking to) */
+.walker.face-r .wk-body { transform: perspective(320px) rotateY(38deg); }
+.walker.face-l .wk-body { transform: perspective(320px) rotateY(-38deg); }
+.walker.talking.face-r .wk-body { transform: perspective(320px) rotateY(22deg); }
+.walker.talking.face-l .wk-body { transform: perspective(320px) rotateY(-22deg); }
+/* walking: legs lift in turn, the body bobs on each step */
+.walker.walking .wk-top { animation: wk-step .26s ease-in-out infinite alternate; }
+.walker.walking .wk-l { animation: wk-leg .52s ease-in-out infinite; }
+.walker.walking .wk-r { animation: wk-leg .52s ease-in-out -.26s infinite; }
+@keyframes wk-step { from { transform: translateY(0) rotate(-1.2deg); } to { transform: translateY(-3px) rotate(1.2deg); } }
+@keyframes wk-leg { 0%, 100% { transform: translate(-5%, 0); } 25% { transform: translate(0, -10%); } 50% { transform: translate(5%, 0); } 75% { transform: translate(0, 0); } }
+/* talking: a small nod now and then */
+.walker.talking .wk-top { animation: wk-nod 1.6s ease-in-out infinite; }
+@keyframes wk-nod { 0%, 70%, 100% { transform: translateY(0); } 80% { transform: translateY(1.5px); } 90% { transform: translateY(0); } }
+.wk-shadow { display: block; width: 38px; height: 7px; margin-top: -4px; border-radius: 50%; background: rgb(0 0 0 / .16); }
+@media (max-width: 719px) { .yard { height: 380px; } .walker { width: 60px; } .wk-body { height: 70px; } .team-joe img { width: 96px; height: 96px; } }
+@media (prefers-reduced-motion: reduce) { .walker .wk-top, .walker .wk-leg { animation: none !important; } .wk-body { transition: none; } }
 
 /* toolbox: billiard balls */
 .tools { display: block; }
