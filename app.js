@@ -936,8 +936,7 @@
   (function () {
     var btn = $('#btn-menu'), nav = $('#tabnav'), scrim = $('#nav-scrim'), mainEl = $('#main'), mq = window.matchMedia('(max-width: 959px)');
     if (!btn || !nav) return;
-    var i = 0;
-    $$('#tabnav > *').concat($$('.top-actions > *')).forEach(function (el) { el.style.setProperty('--i', i++); });
+    /* fade order comes from each item's position (CSS nth-child), so items swapped later (the Résumé link) keep their place */
     function isOpen() { return root.classList.contains('nav-open'); }
     function setOpen(on, focusBack) {
       if (on === isOpen()) return;
