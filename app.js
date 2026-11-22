@@ -206,7 +206,7 @@
     $('#stats').innerHTML = (p.stats || []).map(function (s) { return '<li><b>' + esc(s.value) + '</b><span>' + esc(s.label) + '</span></li>'; }).join('');
     setText('reply-note', p.reply_note);
     var l = $('#email-link'); l.textContent = p.email; l.href = 'mailto:' + p.email;
-    setText('last-updated', ymd(DATA.projects.last_updated));
+    $$('.last-updated').forEach(function (e) { e.textContent = ymd(DATA.projects.last_updated); });
   }
 
   var filter = 'all';

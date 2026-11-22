@@ -915,6 +915,7 @@ html.running .pause { bottom: 82px; }
   .side-note { color: var(--muted); font-size: .8125rem; line-height: 1.4; margin-top: 2px; }
   .side-mail { font-size: 12px; color: var(--text); text-decoration: none; word-break: break-all; }
   .side-mail:hover { text-decoration: underline; }
+  .side-copy { font-size: 10.5px; line-height: 1.5; color: var(--muted); opacity: .75; margin-top: 2px; }
   main, .footer { margin-left: var(--side); width: auto; }
   .footer { max-width: none; padding-inline: max(var(--g), 24px); }
   .pause { left: calc(var(--side) + 16px); }
@@ -1090,16 +1091,16 @@ html.running .pause { bottom: 82px; }
   html.nav-open .toplinks, html.nav-open .top-actions { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
   .toplinks {
     top: 0; bottom: 0; flex: none; flex-direction: column; flex-wrap: nowrap; gap: 2px; overflow-x: hidden; overflow-y: auto;
-    padding: calc(env(safe-area-inset-top, 0px) + 66px) 12px 96px; box-shadow: var(--shadow-lg); overscroll-behavior: contain;
+    padding: calc(env(safe-area-inset-top, 0px) + 60px) 12px 118px; box-shadow: var(--shadow-lg); overscroll-behavior: contain;
   }
-  .toplinks a, .toplinks .tl-act { min-height: 48px; width: 100%; padding: 0 14px; gap: 14px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 16.5px; }
+  .toplinks a, .toplinks .tl-act { min-height: 40px; width: 100%; padding: 0 14px; gap: 14px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 16.5px; }
   .toplinks .ic { width: 19px; height: 19px; }
   .toplinks a:hover, .toplinks .tl-act:hover { transform: none; background: var(--strip); color: var(--text); }
   .toplinks a.on { background: var(--strip); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
   .toplinks .tl-act .ic.ext { margin-left: auto; }
-  .tl-sep { display: block; flex: none; height: 1px; background: var(--line); margin: 10px 8px; }
-  .top-actions { bottom: 0; z-index: 3; display: flex; gap: 8px; padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
-  .top-actions .icon-btn { flex: 1; width: auto; height: 44px; gap: 8px; padding: 0 12px; display: inline-flex; justify-content: center; align-items: center; color: var(--text); font: 500 14px/1 var(--font); }
+  .tl-sep { display: block; flex: none; height: 1px; background: var(--line); margin: 6px 8px; }
+  .top-actions { bottom: 0; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+  .top-actions .icon-btn { flex: 1; width: auto; height: 40px; gap: 8px; padding: 0 12px; display: inline-flex; justify-content: center; align-items: center; color: var(--text); font: 500 14px/1 var(--font); }
   .top-actions .ta-lbl { display: inline; }
 
   /* the links fade in one after another, top to bottom */
@@ -1227,3 +1228,12 @@ html.no-run .side-run { display: none !important; }
 /* FAQ as its own tab */
 #tab-faq > .faq:first-child { padding-top: 34px; }
 .hero h1.sr-only { grid-area: auto; }
+
+/* copyright line: lives in the sidebar (desktop) and at the foot of the burger menu (phones), not on every tab */
+.ta-copy { display: none; }
+@media (max-width: 959px) {
+  html.nav-open .top-actions > .ta-copy { opacity: .75; }
+  .ta-copy { display: block; flex: 0 0 100%; margin: 2px 0 0; text-align: center; font-size: 10.5px; line-height: 1.4; color: var(--muted); opacity: .75; }
+}
+.side-copy .cp-sep, .ta-copy .cp-sep { display: none; }
+.side-copy .cp-upd, .ta-copy .cp-upd { display: block; }
