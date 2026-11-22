@@ -1560,33 +1560,6 @@
     Object.keys(DEF).forEach(function (k) { DEF[k].f.forEach(function (n) { var i = new Image(); i.src = BASE + n + '.webp'; seen[n] = i; }); });
     var S = { mode: 'sit', fi: 0, x: -1, dir: 1, target: 0, until: 0, nextFrame: 0, blinkAt: 0, running: false, timer: 0, visible: true, lights: true };
 
-    var SAY = [
-      'He built Gastos. I approve.',
-      'Patas keeps track of debts. Very useful.',
-      '20+ workflow automations. I counted.',
-      '20 minutes down to 3. Purr.',
-      'He led 4 VAs on 300+ requests a month.',
-      'Demi Plank has my name on it.',
-      'He built a whole brain out of notes.',
-      'GoniLift removes vocals. Karaoke night!',
-      'Raphael runs the team. I run the sunbeam.',
-      'He built this page. I just sit here.',
-      'Patas and GoniLift made it into XERJ. Proud cat.',
-      'The Automation Roadmap has a cat game. I star in it.',
-      'He ships apps that work offline. Like me, mostly asleep.',
-      'Click the bulb. Go on, put him to sleep.'
-    ];
-    var say = $('.pet-say', btn), sayT = 0, sayIdx = -1;
-    function speak(txt, ms) {
-      if (!say) return;
-      if (!txt) { var prev = sayIdx; do { sayIdx = Math.floor(Math.random() * SAY.length); } while (SAY.length > 1 && sayIdx === prev); txt = SAY[sayIdx]; }
-      say.textContent = txt; say.style.setProperty('--sx', '0px'); say.classList.add('on');
-      var r = say.getBoundingClientRect(), vw = document.documentElement.clientWidth, sx = 0;
-      if (r.left < 8) sx = 8 - r.left; else if (r.right > vw - 8) sx = vw - 8 - r.right;
-      say.style.setProperty('--sx', sx + 'px');
-      clearTimeout(sayT); sayT = setTimeout(function () { say.classList.remove('on'); }, ms || 3800);
-      S.nextSay = now() + (ms || 3800) + rnd(8000, 14000);
-    }
     function now() { return performance.now(); }
     function rnd(a, b) { return a + Math.random() * (b - a); }
     function W() { return root.clientWidth; }
@@ -1628,8 +1601,6 @@
       var t = now(), dt = Math.min(120, t - (last || t)); last = t;
       if (paused || reduced()) { show(S.lights ? 'sit1' : 'sleep1'); return; }
       var d = DEF[S.mode];
-      if (!S.nextSay) S.nextSay = t + 6000;
-      if (S.lights && S.mode !== 'sleep' && t >= S.nextSay) speak();
       if (S.mode === 'walk') {
         var sp = pxPer() * 70 * (dt / 1000), dx = S.target - S.x;
         if (Math.abs(dx) <= sp) { S.x = S.target; nextMode(); return; }
@@ -1651,13 +1622,13 @@
 
     btn.addEventListener('click', function () {
       if (!S.lights) return;
-      setMode('meow', 2600); Feel.play('mew'); speak(null, 4200);
+      setMode('meow', 2600); Feel.play('mew');
       btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); setTimeout(function () { btn.classList.remove('pop'); }, 340);
     });
     if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { S.visible = en[0].isIntersecting; }).observe(root);
     if ('MutationObserver' in window) new MutationObserver(function () {
       var on = !document.documentElement.classList.contains('lights-off');
-      if (on === S.lights) return; S.lights = on; if (say) say.classList.remove('on');
+      if (on === S.lights) return; S.lights = on;
       if (!on) setMode('sleep', 600000); else setMode('sit', 2500);
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     window.addEventListener('resize', place);
