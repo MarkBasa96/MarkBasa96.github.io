@@ -1522,7 +1522,7 @@
     $$('#tabnav a[data-tab]').forEach(function (a) { names[a.dataset.tab] = a.textContent.trim(); });
     $$('.tabpanel [data-step]').forEach(function (n) {
       var parts = [], w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT), t;
-      while ((t = w.nextNode())) parts.push(t.nodeValue);
+      while ((t = w.nextNode())) if (!t.parentElement.closest('.pit-hint, .ball-tip, .yard-hint')) parts.push(t.nodeValue);
       var txt = parts.join(' ').replace(/\s+/g, ' ').replace(/ ([.,:;!?])/g, '$1').trim(), at = txt.toLowerCase().indexOf(q);
       if (at < 0) return;
       if ($$('[data-step]', n).some(function (c) { return (c.textContent || '').toLowerCase().indexOf(q) >= 0; })) return;
@@ -1532,15 +1532,20 @@
     });
     return hits.slice(0, 15);
   }
+  function searchMatch(q) { return palCommands().filter(function (c) { return !q || c.label.toLowerCase().indexOf(q) >= 0; }).concat(contentHits(q)); }
+  function itemsHTML(items, sel, pre) {
+    var html = '', lastG = '';
+    items.forEach(function (c, i) {
+      if (c.g !== lastG) { html += '<li class="pal-group" role="presentation">' + c.g + '</li>'; lastG = c.g; }
+      html += '<li class="pal-item" role="option" id="' + pre + i + '" data-i="' + i + '" aria-selected="' + (i === sel) + '">' + (c.img ? '<img class="pimg pimg-s" src="' + esc(c.img) + '" alt="" width="20" height="20">' : ic(c.icon)) + (c.snip ? '<span class="pal-txt"><span>' + esc(c.label) + '</span><em>' + esc(c.snip[0]) + '<mark>' + esc(c.snip[1]) + '</mark>' + esc(c.snip[2]) + '</em></span>' : '<span>' + esc(c.label) + '</span>') + (c.hint ? '<small>' + c.hint + '</small>' : '') + '</li>';
+    });
+    return html;
+  }
   function renderPal() {
     var q = palInput.value.trim().toLowerCase();
-    palItems = palCommands().filter(function (c) { return !q || c.label.toLowerCase().indexOf(q) >= 0; }).concat(contentHits(q));
+    palItems = searchMatch(q);
     if (palIdx >= palItems.length) palIdx = 0;
-    var html = '', lastG = '';
-    palItems.forEach(function (c, i) {
-      if (c.g !== lastG) { html += '<li class="pal-group" role="presentation">' + c.g + '</li>'; lastG = c.g; }
-      html += '<li class="pal-item" role="option" id="pal-' + i + '" data-i="' + i + '" aria-selected="' + (i === palIdx) + '">' + (c.img ? '<img class="pimg pimg-s" src="' + esc(c.img) + '" alt="" width="20" height="20">' : ic(c.icon)) + (c.snip ? '<span class="pal-txt"><span>' + esc(c.label) + '</span><em>' + esc(c.snip[0]) + '<mark>' + esc(c.snip[1]) + '</mark>' + esc(c.snip[2]) + '</em></span>' : '<span>' + esc(c.label) + '</span>') + (c.hint ? '<small>' + c.hint + '</small>' : '') + '</li>';
-    });
+    var html = itemsHTML(palItems, palIdx, 'pal-');
     palList.innerHTML = html || '<li class="pal-empty" role="presentation">Nothing matches.</li>';
     palInput.setAttribute('aria-activedescendant', palItems.length ? 'pal-' + palIdx : '');
   }
@@ -1572,8 +1577,46 @@
   palList.addEventListener('click', function (e) { var li = e.target.closest('.pal-item'); if (li) runPal(+li.dataset.i); });
   palList.addEventListener('mousemove', function (e) { var li = e.target.closest('.pal-item'); if (li && +li.dataset.i !== palIdx) palSelect(+li.dataset.i); });
   $('#btn-cmdk').addEventListener('click', openPal);
-  var searchBtn = $('#btn-search');
-  if (searchBtn) searchBtn.addEventListener('click', function () { openPal(); palInput.placeholder = 'Search skills, tools, projects, roles…'; $('.pal-search use').setAttribute('href', '#i-search'); });
+  /* ---------- phone quick search: a small box slides out of the search icon; suggestions only once you type ---------- */
+  (function () {
+    var btn = $('#btn-search'), box = $('#m-sbox'), inp = $('#m-sinput'), list = $('#m-sresults');
+    if (!btn || !box || !inp || !list) return;
+    var items = [], idx = 0;
+    function isOpen() { return root.classList.contains('msearch-open'); }
+    function render() {
+      var q = inp.value.trim().toLowerCase();
+      if (!q) { list.hidden = true; list.innerHTML = ''; inp.setAttribute('aria-expanded', 'false'); return; }
+      items = searchMatch(q).slice(0, 14); idx = 0;
+      list.innerHTML = itemsHTML(items, idx, 'ms-') || '<li class="pal-empty" role="presentation">Nothing matches.</li>';
+      list.hidden = false; inp.setAttribute('aria-expanded', 'true');
+      inp.setAttribute('aria-activedescendant', items.length ? 'ms-0' : '');
+    }
+    function open() {
+      if (root.classList.contains('nav-open') && $('#btn-menu')) $('#btn-menu').click();
+      root.classList.add('msearch-open'); inp.tabIndex = 0; btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Close search'); $('use', btn).setAttribute('href', '#i-close');
+      inp.focus({ preventScroll: true }); render();
+    }
+    function close(keepText) {
+      root.classList.remove('msearch-open'); inp.tabIndex = -1; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Search the site'); $('use', btn).setAttribute('href', '#i-search');
+      if (!keepText) inp.value = ''; list.hidden = true; list.innerHTML = ''; inp.blur();
+    }
+    function pick(i) { var c = items[i]; if (!c) return; close(); setTimeout(function () { c.run(btn); }, 30); }
+    btn.addEventListener('click', function () { if (isOpen()) close(); else open(); });
+    inp.addEventListener('input', render);
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); btn.focus(); }
+      else if (e.key === 'Enter') { e.preventDefault(); pick(idx); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); if (!items.length) return;
+        idx = (idx + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
+        $$('.pal-item', list).forEach(function (el) { el.setAttribute('aria-selected', String(+el.dataset.i === idx)); });
+        inp.setAttribute('aria-activedescendant', 'ms-' + idx); var el = document.getElementById('ms-' + idx); if (el) el.scrollIntoView({ block: 'nearest' });
+      }
+    });
+    list.addEventListener('click', function (e) { var li = e.target.closest('.pal-item'); if (li) pick(+li.dataset.i); });
+    document.addEventListener('pointerdown', function (e) { if (isOpen() && !e.target.closest('#m-sbox, #m-sresults, #btn-search')) close(); }, true);
+    window.matchMedia('(max-width: 959px)').addEventListener('change', function (m) { if (!m.matches) close(); });
+  })();
   document.addEventListener('keydown', function (e) {
     if ((e.metaKey || e.ctrlKey) && (e.key || '').toLowerCase() === 'k') {
       e.preventDefault();

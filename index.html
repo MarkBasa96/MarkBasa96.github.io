@@ -208,7 +208,9 @@
   <div class="topbar-in">
     <button class="m-burger" id="btn-menu" type="button" aria-label="Open menu" aria-controls="tabnav" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
     <a class="m-name" href="#home" aria-label="Joemark Basa, home">Joemark Basa</a>
-    <button class="m-search" id="btn-search" type="button" aria-label="Search the site"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></button>
+    <div class="m-sbox" id="m-sbox"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input id="m-sinput" type="search" tabindex="-1" placeholder="Search skills, tools, projects…" role="combobox" aria-label="Search the site" aria-expanded="false" aria-controls="m-sresults" aria-autocomplete="list" autocomplete="off" spellcheck="false" enterkeyhint="go"></div>
+    <ul class="m-sresults pal-list" id="m-sresults" role="listbox" aria-label="Suggestions" hidden></ul>
+    <button class="m-search" id="btn-search" type="button" aria-label="Search the site" aria-controls="m-sbox" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></button>
     <div class="brand">
       <a class="monogram node io" href="#home" aria-label="Joemark Basa, home"><span>JB</span></a>
       <span class="side-name">Joemark Basa</span>
