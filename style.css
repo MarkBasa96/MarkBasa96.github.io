@@ -1421,3 +1421,7 @@ html.no-run .side-run { display: none !important; }
   @keyframes ms-in { from { opacity: 0; transform: translateY(-6px); } }
 }
 @media (min-width: 960px) and (prefers-reduced-motion: reduce) { .m-sbox, html.msearch-open .m-sbox, .m-sbox input, html.msearch-open .m-sbox input { transition: none; } .m-sresults { animation: none; } }
+/* desktop: tab content starts below the top-right search icon, so nothing sits under it */
+@media (min-width: 960px) {
+  .tabpanel > .group:first-child:not(#top), .tabpanel > .tab-run-row:first-child + .group { padding-top: 80px; }
+}
