@@ -1237,3 +1237,34 @@ html.no-run .side-run { display: none !important; }
 }
 .side-copy .cp-sep, .ta-copy .cp-sep { display: none; }
 .side-copy .cp-upd, .ta-copy .cp-upd { display: block; }
+
+/* desktop sidebar: Sound / Theme / Ctrl K sit in the footer area, right above "Open to part-time…" */
+@media (min-width: 960px) {
+  .toplinks { margin-bottom: auto; padding-bottom: 8px; }
+  .side-foot { display: contents; }
+  .side-foot > * { margin-left: 6px; margin-right: 6px; }
+  .side-run { order: 4; margin-top: 18px; }
+  .top-actions { order: 5; margin: 12px 6px 0; padding: 0; justify-content: flex-start; }
+  .side-foot .pill { order: 6; margin-top: 12px; }
+  .side-note { order: 7; margin-top: 12px; }
+  .side-mail { order: 8; margin-top: 4px; }
+  .side-copy { order: 9; margin-top: 8px; }
+}
+/* shorter laptop screens: tighter sidebar so everything down to the copyright fits */
+@media (min-width: 960px) and (max-height: 860px) {
+  .topbar-in { padding-top: 14px; padding-bottom: 12px; }
+  .topbar-in .brand { padding-bottom: 10px; }
+  .toplinks a, .toplinks .tl-act { min-height: 32px; font-size: 14px; }
+  .tl-sep { margin: 6px 8px; }
+  .toplinks { padding-bottom: 4px; }
+  .side-run { margin-top: 10px; min-height: 36px; }
+  .top-actions { margin-top: 10px; }
+  .top-actions .icon-btn { width: 36px; height: 36px; }
+  .btn-cmd { min-height: 36px; }
+  .side-foot .pill { margin-top: 10px; }
+  .side-note { margin-top: 8px; }
+}
+@media (min-width: 960px) and (max-height: 700px) {
+  .side-note { display: none; }
+  .toplinks a, .toplinks .tl-act { min-height: 30px; }
+}
