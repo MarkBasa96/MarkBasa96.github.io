@@ -531,9 +531,10 @@
       '<p class="yard-hint mono">Tap anyone to see what they do</p>' +
       '<div class="yard" id="yard">' + crew.map(function (c) {
         var a = c[0], id = c[1];
-        var src = 'assets/team/' + esc(a.sprite || id) + '-front.webp';
+        var key = esc(a.sprite || id), src = 'assets/team/' + key + '-front.webp';
         return '<button class="walker" type="button" data-agent="' + esc(id) + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body">' +
           '<img class="wk-top" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-l" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-r" src="' + src + '" alt="" draggable="false" decoding="async">' +
+          '<span class="wk-side"><img class="wk-s1" src="assets/team/' + key + '-side1.webp" alt="" draggable="false" decoding="async"><img class="wk-s2" src="assets/team/' + key + '-side2.webp" alt="" draggable="false" decoding="async"></span>' +
           '</span><i class="wk-shadow" aria-hidden="true"></i></button>';
       }).join('') + '</div></div>' +
       '<div class="org" id="org"><svg class="org-wires" aria-hidden="true"></svg><span class="peer-tag mono" hidden>peer</span>' +
@@ -568,7 +569,8 @@
     function face(w, dir) { w.el.classList.toggle('face-l', dir < 0); w.el.classList.toggle('face-r', dir > 0); }
     function setState(w, st) {
       w.st = st; w.el.classList.toggle('walking', st === 'walk'); w.el.classList.toggle('talking', st === 'chat');
-      if (st !== 'walk' && st !== 'chat') face(w, 0);
+      if (st !== 'walk' && st !== 'chat') { face(w, 0); w.el.classList.remove('side'); }
+      if (st === 'chat') w.el.classList.add('side');
     }
     function free(o) { return o.st === 'idle' && !o.host && !o.friend; }
     var SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else */
@@ -625,7 +627,7 @@
           if (vd < 1.5) w.via = null;
           else {
             if (blockedBy(w, vx, vy, vd)) { w.via = null; w.blocked = 1.3; }
-            else { var vs = Math.min(vd, w.speed * dt); w.x += vx / vd * vs; w.y += vy / vd * vs; if (Math.abs(vx) > 1) face(w, vx); w.el.classList.add('walking'); place(w); return; }
+            else { var vs = Math.min(vd, w.speed * dt); w.x += vx / vd * vs; w.y += vy / vd * vs; if (Math.abs(vx) > 1) face(w, vx); w.el.classList.toggle('side', Math.abs(vx) > Math.abs(vy) * .7); w.el.classList.add('walking'); place(w); return; }
           }
         }
         var dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
@@ -652,6 +654,7 @@
         w.blocked = 0; w.el.classList.add('walking');
         var step = Math.min(d, w.speed * dt); w.x += dx / d * step; w.y += dy / d * step;
         if (Math.abs(dx) > 1) face(w, dx);
+        w.el.classList.toggle('side', Math.abs(dx) > Math.abs(dy) * .7);   /* profile when mostly sideways, front view when walking up/down */
         place(w);
       });
       raf = requestAnimationFrame(frame);
