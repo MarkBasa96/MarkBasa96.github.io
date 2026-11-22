@@ -1319,18 +1319,28 @@ html.no-run .side-run { display: none !important; }
 @media (max-width: 959px) {
   .topbar-in { position: relative; }
   .m-name { transition: opacity .2s; }
+  /* closed: an invisible 44px circle sitting exactly on the search icon; open: it stretches slowly to the left */
   .m-sbox {
-    display: flex; align-items: center; gap: 8px; position: absolute; right: 52px; top: 50%; z-index: 4;
-    height: 40px; width: 0; padding: 0; transform: translateY(-50%); overflow: hidden; opacity: 0; pointer-events: none;
-    border-radius: 999px; background: var(--card); border: 1px solid transparent;
-    transition: width .32s cubic-bezier(.2, .8, .2, 1), opacity .22s, padding .32s, border-color .32s, box-shadow .32s;
+    display: flex; align-items: center; gap: 8px; position: absolute; right: 6px; top: 50%; z-index: 4;
+    height: 44px; width: 44px; padding: 0; transform: translateY(-50%); overflow: hidden;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    border-radius: 22px; background: var(--card); border: 1px solid var(--line); box-shadow: none;
+    transition: width .55s cubic-bezier(.22, .8, .2, 1), padding .55s cubic-bezier(.22, .8, .2, 1), opacity .25s ease .3s, visibility 0s linear .55s, box-shadow .4s;
   }
-  html.msearch-open .m-sbox { width: calc(100% - 108px); padding: 0 12px; opacity: 1; pointer-events: auto; border-color: var(--line); box-shadow: var(--shadow); }
+  html.msearch-open .m-sbox {
+    width: calc(100% - 62px); padding: 0 4px 0 14px; opacity: 1; visibility: visible; pointer-events: auto; box-shadow: var(--shadow);
+    transition: width .55s cubic-bezier(.22, .8, .2, 1), padding .55s cubic-bezier(.22, .8, .2, 1), opacity .12s, visibility 0s, box-shadow .4s;
+  }
   html.msearch-open .m-name { opacity: 0; }
-  .m-sbox .ic { width: 16px; height: 16px; flex: none; color: var(--muted); }
-  .m-sbox input { all: unset; flex: 1; min-width: 0; font: 400 16px/1.2 var(--font); color: var(--text); }
+  html.msearch-open .m-search { opacity: 0; pointer-events: none; }
+  .m-search { transition: opacity .2s; }
+  .m-sbox > .ic { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  .m-sbox input { all: unset; flex: 1; min-width: 0; font: 400 16px/1.2 var(--font); color: var(--text); opacity: 0; transition: opacity .15s; }
+  html.msearch-open .m-sbox input { opacity: 1; transition: opacity .25s ease .28s; }
   .m-sbox input::placeholder { color: var(--muted); }
   .m-sbox input::-webkit-search-cancel-button { -webkit-appearance: none; }
+  .m-sclose { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .m-sclose .ic { width: 18px; height: 18px; }
   .m-sresults {
     display: block; position: fixed; z-index: 5; top: calc(env(safe-area-inset-top, 0px) + 62px); left: 10px; right: 10px; margin: 0;
     max-height: calc(100dvh - 180px); background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg);
@@ -1339,7 +1349,7 @@ html.no-run .side-run { display: none !important; }
   .m-sresults[hidden] { display: none; }
   @keyframes ms-in { from { opacity: 0; transform: translateY(-6px); } }
 }
-@media (max-width: 959px) and (prefers-reduced-motion: reduce) { .m-sbox, .m-name { transition: none; } .m-sresults { animation: none; } }
+@media (max-width: 959px) and (prefers-reduced-motion: reduce) { .m-sbox, .m-name, .m-sbox input, html.msearch-open .m-sbox, html.msearch-open .m-sbox input { transition: none; } .m-sresults { animation: none; } }
 
 /* burger menu: each item fades in by its position, top to bottom */
 @media (max-width: 959px) {

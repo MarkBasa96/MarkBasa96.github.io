@@ -1592,15 +1592,16 @@
     }
     function open() {
       if (root.classList.contains('nav-open') && $('#btn-menu')) $('#btn-menu').click();
-      root.classList.add('msearch-open'); inp.tabIndex = 0; btn.setAttribute('aria-expanded', 'true'); btn.setAttribute('aria-label', 'Close search'); $('use', btn).setAttribute('href', '#i-close');
+      root.classList.add('msearch-open'); inp.tabIndex = 0; btn.setAttribute('aria-expanded', 'true');
       inp.focus({ preventScroll: true }); render();
     }
     function close(keepText) {
-      root.classList.remove('msearch-open'); inp.tabIndex = -1; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Search the site'); $('use', btn).setAttribute('href', '#i-search');
+      root.classList.remove('msearch-open'); inp.tabIndex = -1; btn.setAttribute('aria-expanded', 'false');
       if (!keepText) inp.value = ''; list.hidden = true; list.innerHTML = ''; inp.blur();
     }
     function pick(i) { var c = items[i]; if (!c) return; close(); setTimeout(function () { c.run(btn); }, 30); }
     btn.addEventListener('click', function () { if (isOpen()) close(); else open(); });
+    var x = $('#m-sclose'); if (x) x.addEventListener('click', function () { close(); btn.focus({ preventScroll: true }); });
     inp.addEventListener('input', render);
     inp.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') { e.preventDefault(); close(); btn.focus(); }
