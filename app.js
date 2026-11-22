@@ -365,17 +365,29 @@
     function radius() { return W < 520 ? 24 : 33; }
     function measure() { W = box.clientWidth; H = box.clientHeight; var r = radius(); bs.forEach(function (b) { b.r = r; b.el.style.width = b.el.style.height = (2 * r) + 'px'; }); }
     function place(b) { b.el.style.transform = 'translate(' + (b.x - b.r).toFixed(1) + 'px,' + (b.y - b.r).toFixed(1) + 'px)'; }
-    function rack() {
-      measure();
-      var r = radius(), cols = Math.max(3, Math.floor((W - 20) / (2 * r + 10)));
-      bs.forEach(function (b, i) {
-        var c = i % cols, row = Math.floor(i / cols);
-        b.x = Math.min(W - r - 2, 14 + r + c * (2 * r + 10) + (row % 2 ? r : 0) + rnd(-3, 3));
-        b.y = Math.min(H - r - 2, 40 + r + row * (2 * r + 8) + rnd(-3, 3));
+    /* the play area is sized to the number of balls, so there is no big empty space below them */
+    function fit() {
+      W = box.clientWidth; var r = radius(), cell = 2 * r + 16;
+      var h = Math.ceil(bs.length * cell * cell * 1.35 / Math.max(1, W)) + 2 * r;
+      if (W >= 700) h = Math.max(h, Math.min(640, window.innerHeight - 230));   /* desktop: use the screen height so the balls fill what you see */
+      box.style.height = Math.max(260, Math.min(640, h)) + 'px';
+    }
+    function rack() {   /* start spread over the whole area (shuffled, a little jitter), not stacked at the top */
+      fit(); measure();
+      var r = radius(), n = bs.length, cols = Math.max(1, Math.round(Math.sqrt(n * W / Math.max(1, H)))), rows = Math.ceil(n / cols);
+      var cw = W / cols, ch = H / rows, order = bs.map(function (b, i) { return i; });
+      for (var i = order.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = order[i]; order[i] = order[j]; order[j] = t; }
+      order.forEach(function (bi, k) {
+        var b = bs[bi], c = k % cols, row = Math.floor(k / cols);
+        var lastRow = row === rows - 1, inRow = lastRow ? n - row * cols : cols, cwr = W / inRow;   /* centre a short last row */
+        var jx = Math.max(0, (cwr - 2 * r) / 2 - 2), jy = Math.max(0, (ch - 2 * r) / 2 - 2);
+        b.x = Math.max(r + 1, Math.min(W - r - 1, (c + .5) * cwr + rnd(-jx, jx) * .6));
+        b.y = Math.max(r + 1, Math.min(H - r - 1, (row + .5) * ch + rnd(-jy, jy) * .6));
         b.vx = reduced() ? 0 : rnd(-60, 60); b.vy = reduced() ? 0 : rnd(-60, 60);
         place(b);
       });
     }
+
     function clack(v) {
       var now = performance.now(); if (now - lastClack < 35 || v < 40) return; lastClack = now;
       if (window.__JBFeel && window.__JBFeel.clack) window.__JBFeel.clack(v);
@@ -467,7 +479,7 @@
     }
     document.addEventListener('visibilitychange', wake);
     window.addEventListener('resize', function () {
-      if (!box || !box.offsetParent) return; measure();
+      if (!box || !box.offsetParent) return; fit(); measure();
       bs.forEach(function (b) { b.x = Math.min(Math.max(b.r, b.x), W - b.r); b.y = Math.min(Math.max(b.r, b.y), H - b.r); place(b); }); wake();
     });
     new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
