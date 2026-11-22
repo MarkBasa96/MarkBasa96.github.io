@@ -723,7 +723,7 @@
       '<button class="btn btn-line" type="button" data-act="whatsapp" data-smile>' + brand('whatsapp') + 'WhatsApp</button>',
       '<a class="btn btn-line" href="' + esc(links.linkedin) + '" target="_blank" rel="noopener" data-smile>' + brand('linkedin') + 'LinkedIn</a>',
       '<a class="btn btn-line" href="' + esc(links.github) + '" target="_blank" rel="noopener" data-smile>' + brand('github') + 'GitHub</a>',
-      '<button class="btn btn-accent" type="button" data-act="book" data-smile>' + ic('calendar') + 'Book a call</button>'
+      '<button class="btn btn-accent btn-book" type="button" data-act="book" data-smile>' + ic('calendar') + 'Book a call</button>'
     ];
     $('#contact-btns').innerHTML = btns.join('');
   }
