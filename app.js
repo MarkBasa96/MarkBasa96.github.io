@@ -1722,6 +1722,61 @@
     return { play: play, clack: clack };
   })();
 
+  /* ---------- phones: pull down from the top to refresh; the pixel cat walks while it loads ---------- */
+  (function () {
+    var el = $('#ptr'), cat = el && $('.ptr-cat', el), txt = el && $('.ptr-txt', el), mainEl = $('#main');
+    if (!el || !cat || !txt) return;
+    var mq = window.matchMedia('(max-width: 959px)'), TH = 78, MAX = 130, y0 = 0, x0 = 0, dist = 0, pulling = false, armed = false, busy = false, fi = 0, walkT = 0;
+    var FR = ['walk1', 'walk2', 'walk3', 'walk4'];
+    FR.forEach(function (n) { var i = new Image(); i.src = 'assets/cat/' + n + '.webp'; });
+    var NO = '.pit, .yard, #brain-stage, dialog, .m-sbox, .m-sresults, input, textarea, .walker, .ball';
+    function canStart(t) {
+      return mq.matches && !busy && window.pageYOffset <= 0 && !root.classList.contains('nav-open') && !root.classList.contains('msearch-open') &&
+        !document.querySelector('dialog[open]') && !(t && t.closest && t.closest(NO));
+    }
+    function step() { fi = (fi + 1) % FR.length; cat.src = 'assets/cat/' + FR[fi] + '.webp'; }
+    function show(d) {
+      var p = Math.min(1, d / TH);
+      el.style.transform = 'translateY(' + (d - 70) + 'px)'; el.style.opacity = String(Math.min(1, d / 40));
+      if (mainEl) mainEl.style.transform = 'translateY(' + (d * .55) + 'px)';
+      cat.style.transform = 'translateX(' + ((p - .5) * 40).toFixed(1) + 'px)';
+      var arm = d >= TH; if (arm !== armed) { armed = arm; txt.textContent = arm ? 'Release to refresh' : 'Pull to refresh'; el.classList.toggle('armed', arm); }
+    }
+    function reset(animated) {
+      el.classList.toggle('anim', !!animated); if (mainEl) mainEl.classList.toggle('ptr-anim', !!animated);
+      el.style.transform = ''; el.style.opacity = ''; cat.style.transform = ''; if (mainEl) mainEl.style.transform = '';
+      armed = false; el.classList.remove('armed', 'loading'); txt.textContent = 'Pull to refresh';
+      setTimeout(function () { el.classList.remove('anim'); if (mainEl) mainEl.classList.remove('ptr-anim'); }, 320);
+    }
+    document.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1 || !canStart(e.target)) { pulling = false; return; }
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dist = 0; pulling = true; walkT = 0;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (!pulling) return;
+      var dy = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+      if (dist === 0 && (dy <= 0 || Math.abs(dx) > Math.abs(dy))) { pulling = false; return; }
+      if (window.pageYOffset > 0) { pulling = false; reset(true); return; }
+      e.preventDefault();
+      dist = Math.min(MAX, dy * .55);
+      var now = performance.now(); if (now - walkT > 110) { walkT = now; step(); }
+      show(dist);
+    }, { passive: false });
+    function end() {
+      if (!pulling) return; pulling = false;
+      if (dist >= TH) {
+        busy = true; el.classList.add('loading', 'anim'); txt.textContent = 'Refreshing…';
+        if (mainEl) { mainEl.classList.add('ptr-anim'); mainEl.style.transform = 'translateY(' + (TH * .55) + 'px)'; }
+        el.style.transform = 'translateY(' + (TH - 70) + 'px)'; el.style.opacity = '1';
+        var t = setInterval(step, 120), x = -20; var mv = setInterval(function () { x += 4; if (x > 20) x = -20; cat.style.transform = 'translateX(' + x + 'px)'; }, 120);
+        setTimeout(function () { clearInterval(t); clearInterval(mv); location.reload(); }, 1100);
+      } else reset(true);
+      dist = 0;
+    }
+    document.addEventListener('touchend', end, { passive: true });
+    document.addEventListener('touchcancel', function () { if (pulling) { pulling = false; dist = 0; reset(true); } }, { passive: true });
+  })();
+
   /* ---------- phones: on Contact a pixel cat strolls in the bottom strip, stopping now and then ---------- */
   window.__CatBar = (function () {
     var bar = $('#catbar'), img = bar && $('img', bar); if (!bar || !img) return null;

@@ -1501,3 +1501,19 @@ html.no-run .side-run { display: none !important; }
 @keyframes book-shine { 0% { transform: translateX(-160%) skewX(-18deg); } 38%, 100% { transform: translateX(330%) skewX(-18deg); } }
 @keyframes book-shine-fast { 0% { transform: translateX(-160%) skewX(-18deg); } 100% { transform: translateX(330%) skewX(-18deg); } }
 @media (prefers-reduced-motion: reduce) { .btn-book::after { animation: none !important; opacity: 0; } }
+
+/* ================= phones: pull to refresh with the pixel cat ================= */
+.ptr { display: none; }
+@media (max-width: 959px) {
+  html, body { overscroll-behavior-y: contain; }
+  .ptr {
+    display: flex; flex-direction: column; align-items: center; gap: 4px; position: fixed; left: 0; right: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 58px); z-index: 45; height: 70px; justify-content: flex-end; padding-bottom: 6px;
+    transform: translateY(-70px); opacity: 0; pointer-events: none;
+  }
+  .ptr.anim { transition: transform .3s ease, opacity .3s ease; }
+  #main.ptr-anim { transition: transform .3s ease; }
+  .ptr-cat { height: 38px; width: auto; max-width: none; image-rendering: auto; filter: drop-shadow(0 3px 4px rgb(0 0 0 / .2)); }
+  .ptr-txt { font-size: 10.5px; letter-spacing: .04em; color: var(--muted); }
+  .ptr.armed .ptr-txt, .ptr.loading .ptr-txt { color: var(--accent-ink); }
+}
