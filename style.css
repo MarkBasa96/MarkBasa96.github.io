@@ -1211,15 +1211,16 @@ html.no-run .side-run { display: none !important; }
 .ball {
   position: absolute; left: 0; top: 0; width: 66px; height: 66px; padding: 0; border: 0; border-radius: 50%; cursor: grab; touch-action: none;
   display: grid; place-items: center; will-change: transform; -webkit-tap-highlight-color: transparent;
-  background: radial-gradient(circle at 32% 28%, rgb(255 255 255 / .95) 0 6%, rgb(255 255 255 / .35) 12%, transparent 30%),
-              radial-gradient(circle at 50% 50%, var(--b) 0 55%, color-mix(in srgb, var(--b) 55%, #000) 100%);
-  box-shadow: 0 8px 12px -4px rgb(0 0 0 / .55), inset -6px -8px 14px rgb(0 0 0 / .35);
+  background: radial-gradient(circle at 38% 32%, #ffffff 0 30%, #eef0f4 60%, #d3d6de 100%);
+  box-shadow: 0 8px 12px -4px rgb(0 0 0 / .45);
 }
-.ball-disc { width: 56%; height: 56%; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: inset 0 -2px 3px rgb(0 0 0 / .18); position: relative; z-index: 0; }
-.ball-disc img, .ball-disc .ic { width: 70%; height: 70%; object-fit: contain; pointer-events: none; }
+.ball-disc { width: 74%; height: 74%; border-radius: 50%; display: grid; place-items: center; position: relative; z-index: 0; overflow: hidden; }
+.ball-disc img, .ball-disc .ic { width: 82%; height: 82%; object-fit: contain; pointer-events: none; }
+/* the logo is the ball: a soft sphere shading sits on top of the logo so it reads as round and shiny */
+.ball::before { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; z-index: 1; background: radial-gradient(circle at 40% 35%, transparent 0 45%, rgb(0 0 0 / .10) 70%, rgb(0 0 0 / .28) 100%); box-shadow: inset -4px -6px 10px rgb(0 0 0 / .12); }
 .ball-disc .ic { color: #333; }
-.ball::after { content: ""; position: absolute; left: 22%; top: 14%; width: 26%; height: 16%; border-radius: 50%; background: rgb(255 255 255 / .7); filter: blur(1px); transform: rotate(-30deg); pointer-events: none; }
-.ball.held { cursor: grabbing; box-shadow: 0 16px 22px -6px rgb(0 0 0 / .6), inset -6px -8px 14px rgb(0 0 0 / .35); z-index: 2; }
+.ball::after { content: ""; position: absolute; z-index: 2; left: 22%; top: 12%; width: 28%; height: 17%; border-radius: 50%; background: rgb(255 255 255 / .85); filter: blur(1px); transform: rotate(-30deg); pointer-events: none; }
+.ball.held { cursor: grabbing; box-shadow: 0 16px 22px -6px rgb(0 0 0 / .5); z-index: 2; }
 .ball:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ball-tip { position: absolute; left: 0; top: 0; z-index: 5; padding: 5px 10px; border-radius: 999px; background: #fff; color: #111; font-size: 12px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .15s; box-shadow: 0 4px 12px rgb(0 0 0 / .3); }
 .ball-tip.on { opacity: 1; }
