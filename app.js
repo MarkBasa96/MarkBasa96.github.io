@@ -1615,12 +1615,13 @@
     });
     list.addEventListener('click', function (e) { var li = e.target.closest('.pal-item'); if (li) pick(+li.dataset.i); });
     document.addEventListener('pointerdown', function (e) { if (isOpen() && !e.target.closest('#m-sbox, #m-sresults, #btn-search')) close(); }, true);
-    window.matchMedia('(max-width: 959px)').addEventListener('change', function (m) { if (!m.matches) close(); });
+    window.__QS = { open: open, close: close, isOpen: isOpen };
   })();
   document.addEventListener('keydown', function (e) {
     if ((e.metaKey || e.ctrlKey) && (e.key || '').toLowerCase() === 'k') {
       e.preventDefault();
-      if (pal.open) closeDlg(pal); else openPal();
+      if (pal.open) { closeDlg(pal); return; }
+      if (window.__QS) { if (window.__QS.isOpen()) window.__QS.close(); else window.__QS.open(); } else openPal();
     }
   });
 

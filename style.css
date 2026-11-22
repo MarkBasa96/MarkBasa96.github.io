@@ -1375,3 +1375,49 @@ html.no-run .side-run { display: none !important; }
   .top-actions > :nth-child(4) { --i: 15; }
   .top-actions > :nth-child(5) { --i: 16; }
 }
+
+/* ================= desktop: the same slide-out search, top-right corner on every tab ================= */
+@media (min-width: 960px) {
+  /* the sidebar's blur moves to a pseudo-element, so the fixed search can sit on the page */
+  .topbar.glass { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--glass-solid); }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .topbar::before { background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+  }
+  .btn-cmd { display: none !important; }
+  .m-search {
+    display: inline-grid; place-items: center; position: fixed; top: 16px; right: 24px; z-index: 60;
+    width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    box-shadow: var(--shadow); cursor: pointer; transition: opacity .2s, transform .12s;
+  }
+  .m-search:hover { transform: translateY(-1px); }
+  .m-search .ic { width: 20px; height: 20px; }
+  .m-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  html.msearch-open .m-search { opacity: 0; pointer-events: none; }
+  .m-sbox {
+    display: flex; align-items: center; gap: 8px; position: fixed; top: 16px; right: 24px; z-index: 61;
+    height: 44px; width: 44px; padding: 0; overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none;
+    border-radius: 22px; background: var(--card); border: 1px solid var(--line);
+    transition: width .55s cubic-bezier(.22, .8, .2, 1), padding .55s cubic-bezier(.22, .8, .2, 1), opacity .25s ease .3s, visibility 0s linear .55s, box-shadow .4s;
+  }
+  html.msearch-open .m-sbox {
+    width: min(460px, calc(100vw - var(--side) - 64px)); padding: 0 4px 0 14px; opacity: 1; visibility: visible; pointer-events: auto; box-shadow: var(--shadow-lg);
+    transition: width .55s cubic-bezier(.22, .8, .2, 1), padding .55s cubic-bezier(.22, .8, .2, 1), opacity .12s, visibility 0s, box-shadow .4s;
+  }
+  .m-sbox > .ic { width: 16px; height: 16px; flex: none; color: var(--muted); }
+  .m-sbox input { all: unset; flex: 1; min-width: 0; font: 400 15px/1.2 var(--font); color: var(--text); opacity: 0; transition: opacity .15s; }
+  html.msearch-open .m-sbox input { opacity: 1; transition: opacity .25s ease .28s; }
+  .m-sbox input::placeholder { color: var(--muted); }
+  .m-sbox input::-webkit-search-cancel-button { -webkit-appearance: none; }
+  .m-sclose { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--text); cursor: pointer; }
+  .m-sclose:hover { background: var(--strip); }
+  .m-sclose .ic { width: 18px; height: 18px; }
+  .m-sresults {
+    display: block; position: fixed; z-index: 61; top: 68px; right: 24px; left: auto; width: min(460px, calc(100vw - var(--side) - 64px)); margin: 0;
+    max-height: calc(100vh - 110px); background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg);
+    animation: ms-in .18s ease-out;
+  }
+  .m-sresults[hidden] { display: none; }
+  @keyframes ms-in { from { opacity: 0; transform: translateY(-6px); } }
+}
+@media (min-width: 960px) and (prefers-reduced-motion: reduce) { .m-sbox, html.msearch-open .m-sbox, .m-sbox input, html.msearch-open .m-sbox input { transition: none; } .m-sresults { animation: none; } }
