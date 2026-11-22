@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="assets/icons/face-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="style.css">
 <script>
 /* Apply a saved theme before first paint. Storage may throw (private window, sandbox): page works without it. */
@@ -168,6 +168,8 @@
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" style="fill:currentColor"/></symbol>
   <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></symbol>
   <symbol id="i-cat" viewBox="0 0 24 24"><path d="M5 4l3.2 3.5h7.6L19 4v8.5a7 7 0 0 1-14 0V4z"/><path d="M9 12h.01M15 12h.01M11 15l1 1 1-1"/></symbol>
   <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
@@ -204,22 +206,25 @@
 
 <header class="topbar glass" id="topbar">
   <div class="topbar-in">
+    <button class="m-burger" id="btn-menu" type="button" aria-label="Open menu" aria-controls="tabnav" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
+    <a class="m-name" href="#home" aria-label="Joemark Basa, home">Joemark Basa</a>
+    <button class="m-search" id="btn-search" type="button" aria-label="Search the site"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg></button>
     <div class="brand">
       <a class="monogram node io" href="#home" aria-label="Joemark Basa, home"><span>JB</span></a>
       <span class="side-name">Joemark Basa</span>
     </div>
     <div class="top-actions">
-      <button class="icon-btn" id="btn-sound" type="button" aria-label="Turn sound off" aria-pressed="false" title="Sound on"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg></button>
+      <button class="icon-btn" id="btn-sound" type="button" aria-label="Turn sound off" aria-pressed="false" title="Sound on"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg><span class="ta-lbl">Sound</span></button>
       <button class="icon-btn" id="btn-theme" type="button" aria-label="Switch to dark theme" title="Switch theme">
         <svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg>
-        <svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        <svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg><span class="ta-lbl">Theme</span>
       </button>
       <button class="btn btn-ghost btn-cmd" id="btn-cmdk" type="button" aria-label="Open command palette" aria-keyshortcuts="Control+K Meta+K">
         <svg class="ic" aria-hidden="true"><use href="#i-cmd"/></svg><span class="kbd" id="cmdk-label">Ctrl K</span>
       </button>
     </div>
     <nav class="toplinks" id="tabnav" aria-label="Pages">
-      <a href="#home" data-tab="home"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></a>
+      <a href="#home" data-tab="home" class="on" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></a>
       <a href="#work" data-tab="work"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg><span>Work</span></a>
       <a href="#how" data-tab="how"><svg class="ic" aria-hidden="true"><use href="#i-route"/></svg><span>How I work</span></a>
       <a href="#brain" data-tab="brain"><svg class="ic" aria-hidden="true"><use href="#i-brain"/></svg><span>Second brain</span></a>
@@ -238,6 +243,7 @@
       <a class="side-mail mono" href="mailto:joemarkloarbasa96@gmail.com">joemarkloarbasa96@gmail.com</a>
     </div>
   </div>
+  <div class="nav-scrim" id="nav-scrim" aria-hidden="true"></div>
 </header>
 
 <main id="main">

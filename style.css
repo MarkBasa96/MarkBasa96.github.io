@@ -1039,3 +1039,81 @@ html.running .pause { bottom: 82px; }
 .faq-item summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
 .noscript h2 { font-size: 1.1rem; margin: 18px 0 6px; }
 .noscript ul { padding-left: 1.2em; }
+
+/* ================= phones & tablets (below the desktop sidebar): burger drawer, centred name, search ================= */
+.m-burger, .m-search, .m-name, .ta-lbl, .nav-scrim, .tab-run-row { display: none; }
+.tabpanel > .tab-run-row:first-child + .group { padding-top: 34px; }
+.pal-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.pal-txt em { font-style: normal; font-size: .8125rem; line-height: 1.35; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pal-txt mark { background: none; color: var(--text); font-weight: 600; }
+.search-hit { outline: 2px solid var(--accent); outline-offset: 4px; transition: outline-color .6s; }
+@media (max-width: 959px) {
+  /* the header's blur moves to a pseudo-element, so the drawer and dim can be fixed to the viewport */
+  .topbar.glass { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--glass-solid); }
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .topbar::before { background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+  }
+  @media (prefers-reduced-transparency: reduce) { .topbar::before { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+
+  .topbar-in { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; height: 58px; padding: 0 6px; gap: 4px; flex-wrap: nowrap; }
+  .topbar-in .brand { display: none; }
+  .m-burger, .m-search {
+    display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px;
+    background: none; color: var(--text); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .m-burger { grid-column: 1; position: relative; z-index: 3; }
+  .m-search { grid-column: 3; }
+  .m-burger .ic, .m-search .ic { width: 22px; height: 22px; stroke-width: 1.6; }
+  .m-burger:active, .m-search:active { transform: scale(.94); }
+  .m-burger:focus-visible, .m-search:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .m-name {
+    display: block; grid-column: 2; justify-self: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+    font: 700 20px/1 "Cormorant Garamond", Georgia, "Times New Roman", serif; letter-spacing: .2em; padding-left: .2em;
+    text-transform: uppercase; white-space: nowrap; color: var(--text); text-decoration: none;
+  }
+  .pause, .btn-cmd { display: none !important; }
+  html { scroll-padding-top: 74px; }
+
+  /* dim behind the drawer */
+  .nav-scrim { display: block; position: fixed; inset: 0; z-index: 1; background: var(--scrim); opacity: 0; visibility: hidden; transition: opacity .25s, visibility 0s linear .25s; }
+  html.nav-open .nav-scrim { opacity: 1; visibility: visible; transition: opacity .25s; }
+  html.nav-open, html.nav-open body { overflow: hidden; }
+
+  /* the drawer: page links on top, sound + theme pinned to its foot */
+  .toplinks, .top-actions {
+    position: fixed; left: 0; width: min(300px, 84vw); z-index: 2; margin: 0;
+    background: var(--card); border-right: 1px solid var(--line);
+    transform: translateX(-100%); visibility: hidden;
+    transition: transform .3s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .3s;
+  }
+  html.nav-open .toplinks, html.nav-open .top-actions { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+  .toplinks {
+    top: 0; bottom: 0; flex: none; flex-direction: column; flex-wrap: nowrap; gap: 2px; overflow-x: hidden; overflow-y: auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 66px) 12px 96px; box-shadow: var(--shadow-lg); overscroll-behavior: contain;
+  }
+  .toplinks a, .toplinks .tl-act { min-height: 48px; width: 100%; padding: 0 14px; gap: 14px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-size: 16.5px; }
+  .toplinks .ic { width: 19px; height: 19px; }
+  .toplinks a:hover, .toplinks .tl-act:hover { transform: none; background: var(--strip); color: var(--text); }
+  .toplinks a.on { background: var(--strip); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+  .toplinks .tl-act .ic.ext { margin-left: auto; }
+  .tl-sep { display: block; flex: none; height: 1px; background: var(--line); margin: 10px 8px; }
+  .top-actions { bottom: 0; z-index: 3; display: flex; gap: 8px; padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); }
+  .top-actions .icon-btn { flex: 1; width: auto; height: 44px; gap: 8px; padding: 0 12px; display: inline-flex; justify-content: center; align-items: center; color: var(--text); font: 500 14px/1 var(--font); }
+  .top-actions .ta-lbl { display: inline; }
+
+  /* the links fade in one after another, top to bottom */
+  .toplinks > *, .top-actions > * { opacity: 0; transform: translateY(-8px); transition: opacity .15s, transform .15s; }
+  html.nav-open .toplinks > *, html.nav-open .top-actions > * {
+    opacity: 1; transform: none;
+    transition: opacity .35s ease-out, transform .35s ease-out; transition-delay: calc(var(--i, 0) * 40ms + 110ms);
+  }
+
+  /* one Run button at the top of every tab (Home keeps its own in the hero) */
+  .tab-run-row { display: flex; padding-top: 22px; }
+  .tabpanel > .tab-run-row:first-child + .group { padding-top: 18px; }
+}
+@media (max-width: 959px) and (prefers-reduced-motion: reduce) {
+  .toplinks, .top-actions, .nav-scrim, .toplinks > *, .top-actions > * { transition: none !important; }
+  .toplinks > *, .top-actions > * { transform: none; }
+}

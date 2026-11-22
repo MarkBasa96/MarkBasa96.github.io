@@ -617,6 +617,31 @@
     if (paused) root.setAttribute('data-paused', ''); else root.removeAttribute('data-paused');
   });
 
+  /* ---------- phones & tablets: burger drawer ---------- */
+  (function () {
+    var btn = $('#btn-menu'), nav = $('#tabnav'), scrim = $('#nav-scrim'), mainEl = $('#main'), mq = window.matchMedia('(max-width: 959px)');
+    if (!btn || !nav) return;
+    var i = 0;
+    $$('#tabnav > *').concat($$('.top-actions > *')).forEach(function (el) { el.style.setProperty('--i', i++); });
+    function isOpen() { return root.classList.contains('nav-open'); }
+    function setOpen(on, focusBack) {
+      if (on === isOpen()) return;
+      root.classList.toggle('nav-open', on);
+      btn.setAttribute('aria-expanded', String(on));
+      btn.setAttribute('aria-label', on ? 'Close menu' : 'Open menu');
+      $('use', btn).setAttribute('href', on ? '#i-close' : '#i-menu');
+      if (mainEl) mainEl.inert = on;
+      if (on) { var f = $('a.on', nav) || $('a', nav); if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 60); }
+      else if (focusBack) btn.focus({ preventScroll: true });
+    }
+    btn.addEventListener('click', function () { setOpen(!isOpen()); });
+    if (scrim) scrim.addEventListener('click', function () { setOpen(false); });
+    nav.addEventListener('click', function (e) { if (e.target.closest('a, .tl-act')) setOpen(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); setOpen(false, true); } }, true);
+    function onMQ() { if (!mq.matches) setOpen(false); }
+    if (mq.addEventListener) mq.addEventListener('change', onMQ); else if (mq.addListener) mq.addListener(onMQ);
+  })();
+
   /* ---------- the run engine ----------
      One engine for the whole page run (hero button) and for the How-I-work flow (scoped to its 5 nodes).
      Steps are every element with data-step, in DOM order, so new projects and sections join automatically.
@@ -640,6 +665,14 @@
   function setBar(n, p) { var b = $('.rbar > i', n); if (b) b.style.transform = 'scaleX(' + Math.max(0, Math.min(1, p)) + ')'; }
   function clearNode(n) { n.classList.remove('lit', 'done'); setBar(n, 0); var t = $('.rtxt', n); if (t) t.textContent = ''; }
   function scrollToNode(n, instant) { n.scrollIntoView({ behavior: instant || reduced() ? 'auto' : 'smooth', block: 'center' }); }
+
+  /* phones and tablets: one Run button at the top of every tab except Home (its hero already has one) */
+  $$('.tabpanel').forEach(function (p) {
+    if (p.dataset.tab === 'home') return;
+    var row = document.createElement('div'); row.className = 'tab-run-row wrap';
+    row.innerHTML = '<button class="btn btn-run tab-run" type="button">' + ic('play') + '<span>Run workflow</span></button>';
+    p.insertBefore(row, p.firstChild);
+  });
 
   var Run = (function () {
     var SVGNS = 'http://www.w3.org/2000/svg', TRAVEL = 700;
@@ -797,6 +830,7 @@
     }
     function setRunBtn(icon, label) {
       runLabel.textContent = label; $('use', runBtn).setAttribute('href', '#i-' + icon);
+      $$('.tab-run').forEach(function (b) { $('span', b).textContent = icon === 'stop' ? 'Stop' : (reduced() ? 'Step through the page' : 'Run workflow'); $('use', b).setAttribute('href', '#i-' + icon); });
       if (runTabBtn) { runTabLabel.textContent = icon === 'stop' ? 'Stop' : (reduced() ? 'Step through this page' : 'Run this page'); $('use', runTabBtn).setAttribute('href', '#i-' + icon); }
     }
 
@@ -888,7 +922,7 @@
     var SCROLL_KEYS = { ArrowUp: 1, ArrowDown: 1, PageUp: 1, PageDown: 1, Home: 1, End: 1 };
     function onUser(e) { if (S.state === 'running' && !reduced()) pause(true); }
     function onPointer(e) {
-      if (e.target.closest && e.target.closest('#runbar, #btn-run, #btn-run-tab, #btn-flow')) return;
+      if (e.target.closest && e.target.closest('#runbar, #btn-run, #btn-run-tab, #btn-flow, .tab-run')) return;
       onUser();
     }
     function onKey(e) {
@@ -908,7 +942,7 @@
 
     /* ----- wiring ----- */
     function pageToggle() { if (active() && S.scope === 'page') stop(); else start('page'); }
-    runBtn.addEventListener('click', pageToggle); if (runTabBtn) runTabBtn.addEventListener('click', pageToggle);
+    runBtn.addEventListener('click', pageToggle); $$('.tab-run').forEach(function (b) { b.addEventListener('click', pageToggle); }); if (runTabBtn) runTabBtn.addEventListener('click', pageToggle);
     flowBtn.addEventListener('click', function () { if (active() && S.scope === 'flow') stop(); else start('flow'); });
     rbPlay.addEventListener('click', toggle); $('#rb-next').addEventListener('click', next); $('#rb-back').addEventListener('click', back);
     $('#rb-stop').addEventListener('click', function () { stop(); }); rbSpeed.addEventListener('click', cycleSpeed);
@@ -1155,14 +1189,41 @@
     });
     return list;
   }
+  /* Content search: every node on every tab (projects, roles, tools, skills, team…). Only the innermost
+     matching node is listed, with a short snippet around the match. */
+  function goToHit(n, tab) {
+    showTab(tab, { keepScroll: true });
+    requestAnimationFrame(function () {
+      var x = n.closest('.xnode');
+      if (x && !x.classList.contains('open')) { var xb = $('.xbtn', x); if (xb) xb.click(); }
+      n.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' });
+      n.classList.add('search-hit'); setTimeout(function () { n.classList.remove('search-hit'); }, 1600);
+    });
+  }
+  function contentHits(q) {
+    if (q.length < 2) return [];
+    var names = {}, hits = [];
+    $$('#tabnav a[data-tab]').forEach(function (a) { names[a.dataset.tab] = a.textContent.trim(); });
+    $$('.tabpanel [data-step]').forEach(function (n) {
+      var parts = [], w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT), t;
+      while ((t = w.nextNode())) parts.push(t.nodeValue);
+      var txt = parts.join(' ').replace(/\s+/g, ' ').replace(/ ([.,:;!?])/g, '$1').trim(), at = txt.toLowerCase().indexOf(q);
+      if (at < 0) return;
+      if ($$('[data-step]', n).some(function (c) { return (c.textContent || '').toLowerCase().indexOf(q) >= 0; })) return;
+      var tab = n.closest('.tabpanel').dataset.tab, s = Math.max(0, at - 24), e = Math.min(txt.length, at + q.length + 48);
+      hits.push({ g: 'On the site', label: n.dataset.step, hint: names[tab] || '', icon: 'search', run: function () { goToHit(n, tab); },
+        snip: [(s ? '…' : '') + txt.slice(s, at), txt.slice(at, at + q.length), txt.slice(at + q.length, e) + (e < txt.length ? '…' : '')] });
+    });
+    return hits.slice(0, 15);
+  }
   function renderPal() {
     var q = palInput.value.trim().toLowerCase();
-    palItems = palCommands().filter(function (c) { return !q || c.label.toLowerCase().indexOf(q) >= 0; });
+    palItems = palCommands().filter(function (c) { return !q || c.label.toLowerCase().indexOf(q) >= 0; }).concat(contentHits(q));
     if (palIdx >= palItems.length) palIdx = 0;
     var html = '', lastG = '';
     palItems.forEach(function (c, i) {
       if (c.g !== lastG) { html += '<li class="pal-group" role="presentation">' + c.g + '</li>'; lastG = c.g; }
-      html += '<li class="pal-item" role="option" id="pal-' + i + '" data-i="' + i + '" aria-selected="' + (i === palIdx) + '">' + (c.img ? '<img class="pimg pimg-s" src="' + esc(c.img) + '" alt="" width="20" height="20">' : ic(c.icon)) + '<span>' + esc(c.label) + '</span>' + (c.hint ? '<small>' + c.hint + '</small>' : '') + '</li>';
+      html += '<li class="pal-item" role="option" id="pal-' + i + '" data-i="' + i + '" aria-selected="' + (i === palIdx) + '">' + (c.img ? '<img class="pimg pimg-s" src="' + esc(c.img) + '" alt="" width="20" height="20">' : ic(c.icon)) + (c.snip ? '<span class="pal-txt"><span>' + esc(c.label) + '</span><em>' + esc(c.snip[0]) + '<mark>' + esc(c.snip[1]) + '</mark>' + esc(c.snip[2]) + '</em></span>' : '<span>' + esc(c.label) + '</span>') + (c.hint ? '<small>' + c.hint + '</small>' : '') + '</li>';
     });
     palList.innerHTML = html || '<li class="pal-empty" role="presentation">Nothing matches.</li>';
     palInput.setAttribute('aria-activedescendant', palItems.length ? 'pal-' + palIdx : '');
@@ -1178,6 +1239,7 @@
   function openPal() {
     if ($$('dialog[open]').some(function (d) { return d !== pal; })) return;
     palOpener = document.activeElement; palInput.value = ''; palIdx = 0; renderPal();
+    palInput.placeholder = 'Type a command, a project or a skill'; $('.pal-search use').setAttribute('href', '#i-cmd');
     openDlg(pal, palOpener); palInput.focus();
   }
   function runPal(i) {
@@ -1194,6 +1256,8 @@
   palList.addEventListener('click', function (e) { var li = e.target.closest('.pal-item'); if (li) runPal(+li.dataset.i); });
   palList.addEventListener('mousemove', function (e) { var li = e.target.closest('.pal-item'); if (li && +li.dataset.i !== palIdx) palSelect(+li.dataset.i); });
   $('#btn-cmdk').addEventListener('click', openPal);
+  var searchBtn = $('#btn-search');
+  if (searchBtn) searchBtn.addEventListener('click', function () { openPal(); palInput.placeholder = 'Search skills, tools, projects, roles…'; $('.pal-search use').setAttribute('href', '#i-search'); });
   document.addEventListener('keydown', function (e) {
     if ((e.metaKey || e.ctrlKey) && (e.key || '').toLowerCase() === 'k') {
       e.preventDefault();
@@ -1228,7 +1292,7 @@
       else tone(c, t, 560, 280, 0.06, 0.055);
     }
     function kindOf(el) {
-      if (el.matches('.btn-accent, .btn-run, #btn-run, #btn-run-tab')) return 'confirm';
+      if (el.matches('.btn-accent, .btn-run, #btn-run, #btn-run-tab, .tab-run')) return 'confirm';
       if (el.matches('.toplinks a, .tl-act, .chip, .pal-item')) return 'soft';
       return 'tick';
     }
