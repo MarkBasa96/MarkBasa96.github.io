@@ -883,15 +883,6 @@
   $('#btn-copy').addEventListener('click', copyEmail);
   if ($('#btn-game')) $('#btn-game').addEventListener('click', function () { if (window.CatGame) window.CatGame.open(); });
 
-  /* pause control */
-  var pauseBtn = $('#btn-pause');
-  pauseBtn.addEventListener('click', function () {
-    paused = !paused;
-    pauseBtn.setAttribute('aria-pressed', String(paused));
-    $('span', pauseBtn).textContent = paused ? 'Play motion' : 'Pause motion';
-    $('use', pauseBtn).setAttribute('href', paused ? '#i-play' : '#i-pause');
-    if (paused) root.setAttribute('data-paused', ''); else root.removeAttribute('data-paused');
-  });
 
   /* ---------- phones & tablets: burger drawer ---------- */
   (function () {
