@@ -1246,7 +1246,7 @@ html.no-run .side-run { display: none !important; }
   .side-run { order: 4; margin-top: 18px; }
   .top-actions { order: 5; margin: 12px 6px 0; padding: 0; justify-content: flex-start; }
   .side-foot .pill { order: 6; margin-top: 12px; }
-  .side-note { order: 7; margin-top: 12px; }
+  .side-note { order: 7; margin-top: 14px; }
   .side-mail { order: 8; margin-top: 4px; }
   .side-copy { order: 9; margin-top: 8px; }
 }
