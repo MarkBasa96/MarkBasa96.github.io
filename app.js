@@ -362,12 +362,19 @@
   var Pit = (function () {
     var box = null, tip = null, bs = [], raf = 0, last = 0, seen = false, io = null, grab = null, loud = 0, lastClack = 0, nudgeT = 0, W = 0, H = 0;
     function rnd(a, b) { return a + Math.random() * (b - a); }
-    function radius() { return W < 520 ? 24 : 33; }
+    var rFit = 0;
+    function radius() { return rFit || (W < 520 ? 24 : 33); }
     function measure() { W = box.clientWidth; H = box.clientHeight; var r = radius(); bs.forEach(function (b) { b.r = r; b.el.style.width = b.el.style.height = (2 * r) + 'px'; }); }
     function place(b) { b.el.style.transform = 'translate(' + (b.x - b.r).toFixed(1) + 'px,' + (b.y - b.r).toFixed(1) + 'px)'; }
     /* the play area is sized to the number of balls, so there is no big empty space below them */
     function fit() {
-      W = box.clientWidth; var r = radius(), cell = 2 * r + 16;
+      W = box.clientWidth;
+      if (root.classList.contains('fit-tab')) {   /* phone: exactly the space left above the bottom bar */
+        var fh = Math.max(200, fitSpace(box, 8)); box.style.height = fh + 'px';
+        rFit = Math.max(15, Math.min(24, Math.floor(Math.sqrt(W * fh * 0.30 / (bs.length * Math.PI))))); return;
+      }
+      rFit = 0;
+      var r = radius(), cell = 2 * r + 16;
       var h = Math.ceil(bs.length * cell * cell * 1.35 / Math.max(1, W)) + 2 * r;
       if (W >= 700) h = Math.max(h, Math.min(640, window.innerHeight - 230));   /* desktop: use the screen height so the balls fill what you see */
       box.style.height = Math.max(260, Math.min(640, h)) + 'px';
@@ -478,12 +485,13 @@
       } else { seen = true; rack(); wake(); }
     }
     document.addEventListener('visibilitychange', wake);
-    window.addEventListener('resize', function () {
+    function refit() {
       if (!box || !box.offsetParent) return; fit(); measure();
       bs.forEach(function (b) { b.x = Math.min(Math.max(b.r, b.x), W - b.r); b.y = Math.min(Math.max(b.r, b.y), H - b.r); place(b); }); wake();
-    });
+    }
+    window.addEventListener('resize', refit);
     new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
-    return { init: init, wake: wake };
+    return { init: init, wake: wake, refit: refit };
   })();
 
   /* off the clock */
@@ -570,6 +578,12 @@
      then wander off again. Anyone walking yields to whoever is in their way instead of bumping into them. */
   var Yard = (function () {
     var box = null, ws = [], raf = 0, last = 0, seen = false, io = null, GAP = 66;
+    function fitYard() {
+      if (!box) return;
+      if (root.classList.contains('fit-tab')) { var h = Math.max(170, fitSpace(box, 6)); box.style.height = h + 'px'; box.classList.toggle('compact', h < 330); }
+      else { box.style.height = ''; box.classList.remove('compact'); }
+      var w0 = ws[0]; if (w0 && w0.el.offsetWidth) { SX = w0.el.offsetWidth + 2; SY = Math.round(w0.el.offsetHeight * .85); GAP = SX + 4; }
+    }
     function rnd(a, b) { return a + Math.random() * (b - a); }
     function W() { return box.clientWidth; }
     function H() { return box.clientHeight; }
@@ -585,7 +599,7 @@
       if (st === 'chat') w.el.classList.add('side');
     }
     function free(o) { return o.st === 'idle' && !o.host && !o.friend; }
-    var SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else */
+    var SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else (re-measured in fitYard) */
     function taken(w, x, y, skip) {
       return ws.some(function (o) {
         if (o === w || o === skip) return false;
@@ -687,14 +701,15 @@
       ws = $$('.walker', box).map(function (b) { return { el: b, x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 36, st: 'idle', friend: null, host: null, blocked: 0 }; });
       if (io) io.disconnect();
       if ('IntersectionObserver' in window) {
-        io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.placed) { box.dataset.placed = '1'; scatter(); } wake(); } else stop(); });
+        io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.placed) { box.dataset.placed = '1'; fitYard(); scatter(); } wake(); } else stop(); });
         io.observe(box);
       } else { seen = true; scatter(); wake(); }
     }
     document.addEventListener('visibilitychange', wake);
-    window.addEventListener('resize', function () { if (box && box.offsetParent) scatter(); });
+    function refit() { if (box && box.offsetParent) { fitYard(); scatter(); wake(); } }
+    window.addEventListener('resize', refit);
     new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
-    return { init: init, wake: wake, stop: stop };
+    return { init: init, wake: wake, stop: stop, refit: refit };
   })();
   window.addEventListener('resize', layoutOrg);
   document.addEventListener('jb-brain-count', renderOffClock);
@@ -817,9 +832,42 @@
       if (!opts.noHash) { try { history.replaceState(null, '', name === 'home' ? location.pathname + location.search : '#' + name); } catch (e) {} }
       if (!opts.keepScroll) window.scrollTo(0, 0);
       layoutAll(); layoutOrg(); setTimeout(function () { layoutAll(); layoutOrg(); }, 80);
+      applyFit(); setTimeout(applyFit, 120);
       var strip = $('#tabnav .on'); if (strip && strip.scrollIntoView) { try { strip.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) {} }
     }
   }
+  /* ---------- phones: Second brain, Toolbox, Team, Contact and FAQ fit exactly one screen ---------- */
+  var FIT_TABS = ['brain', 'toolbox', 'team', 'contact', 'faq'], fitMQ = window.matchMedia('(max-width: 959px)');
+  function fitSpace(el, gap) {   /* px from the element's top (page at the top) down to the bottom bar or screen edge */
+    var bar = document.querySelector('.bottombar'), limit = window.innerHeight;
+    if (bar && getComputedStyle(bar).display !== 'none') limit = bar.getBoundingClientRect().top;
+    return Math.floor(limit - (el.getBoundingClientRect().top + window.pageYOffset) - (gap || 0) - (fitTrim[curTab] || 0));
+  }
+  var fitBusy = false, fitTrim = {};   /* per-tab correction for spacing below the stretchy area, measured once */
+  function applyFit() {
+    if (fitBusy) return; fitBusy = true;
+    var on = fitMQ.matches && FIT_TABS.indexOf(curTab) >= 0, y = window.pageYOffset;
+    root.classList.toggle('fit-tab', on);
+    if (on && y) window.scrollTo(0, 0);
+    var stage = document.getElementById('brain-stage');
+    if (stage) stage.style.height = on && curTab === 'brain' ? Math.max(220, fitSpace(stage, 10)) + 'px' : '';
+    if (typeof Pit !== 'undefined' && Pit.refit && curTab === 'toolbox') Pit.refit();
+    if (typeof Yard !== 'undefined' && Yard.refit && curTab === 'team') Yard.refit();
+    fitBusy = false;
+    /* if anything still spills past the screen (margins under the area), shrink the stretchy area by exactly that much */
+    if (on && ['brain', 'toolbox', 'team'].indexOf(curTab) >= 0 && !applyFit.again) {
+      var over = document.documentElement.scrollHeight - window.innerHeight;
+      if (over > 0) { fitTrim[curTab] = (fitTrim[curTab] || 0) + over; applyFit.again = true; applyFit(); applyFit.again = false; }
+    }
+  }
+  window.addEventListener('resize', function () { clearTimeout(applyFit.t); applyFit.t = setTimeout(applyFit, 120); });
+  /* FAQ on phones: answers start closed, and opening one closes the others */
+  (function () {
+    var items = Array.prototype.slice.call(document.querySelectorAll('#faq details'));
+    if (fitMQ.matches) items.forEach(function (d) { d.open = false; });
+    items.forEach(function (d) { d.addEventListener('toggle', function () { if (d.open && fitMQ.matches) items.forEach(function (o) { if (o !== d) o.open = false; }); }); });
+  })();
+
   function jump(id) {
     if (id === 'home' || id === 'top') { showTab('home'); window.scrollTo(0, 0); return; }
     var t = tabOf(id); if (!t) return;
@@ -1714,6 +1762,7 @@
 
   /* ---------- go ---------- */
   renderAll();
+  setTimeout(applyFit, 60); setTimeout(applyFit, 600);
   (function () { var id = location.hash.slice(1), t = tabOf(id); if (t && t !== 'home') { showTab(t, { force: true, noHash: true, keepScroll: true }); if (id !== t && document.getElementById(id)) setTimeout(function () { jump(id); }, 60); } })();
   intro($('.tabpanel.on'));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutAll);
