@@ -8,7 +8,7 @@ Imagine your Monday without the copy-pasting. Your inbox sorts itself, your trac
 - 5+ years of remote operations and support
 - 20+ workflow automations shipped
 - An AI email workflow took a priority email from 20 minutes to about 3
-- Tools: n8n (self-hosted), Power Automate, Make, Zapier, Claude Code, Claude, ChatGPT, Gemini, Microsoft 365, Google Workspace, Asana, Airtable
+- Tools: n8n (self-hosted), Power Automate, Make, Zapier, Claude Code, Claude, ChatGPT, Gemini, Microsoft 365 (Teams, Outlook, SharePoint, Excel, Word, PowerPoint), Google Workspace (Drive, Gmail, Docs, Sheets, Slides, Forms, Apps Script), Asana, Airtable
 - Core skills: Team Leadership, Workflow Automation, AI-Assisted Workflows, Prompt Engineering, Quality Assurance, Customer Support, Project Coordination, Administrative Support, E-Learning
 - Based in Davao City, Philippines (UTC+8), works remotely with any timezone
 - The photos and clips on the site are AI-generated from his likeness
