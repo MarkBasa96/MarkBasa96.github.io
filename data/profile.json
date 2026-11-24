@@ -237,19 +237,27 @@
       "items": [
         {
           "name": "n8n (self-hosted)",
-          "img": "assets/tools/n8n.svg"
+          "img": "assets/tools/n8n.svg",
+          "what": "An open-source automation builder. You connect apps as boxes on a canvas, and it runs the steps for you.",
+          "use": "My main automation tool. I run it on my own PC to build workflows like a Facebook Page sales assistant and a video auto-poster with Telegram approval."
         },
         {
           "name": "Power Automate",
-          "img": "assets/tools/power-automate.png"
+          "img": "assets/tools/power-automate.png",
+          "what": "Microsoft's automation tool. It connects Outlook, Teams, Excel and SharePoint so routine steps happen on their own.",
+          "use": "I built 15+ flows as a team lead, including one that reads priority emails and PDFs, logs them to Excel and alerts the team in Teams."
         },
         {
           "name": "Make",
-          "img": "assets/tools/make.svg"
+          "img": "assets/tools/make.svg",
+          "what": "A visual automation platform (formerly Integromat) for connecting web apps with drag-and-drop scenarios.",
+          "use": "For clients already on Make, I build and fix scenarios the same way I build in n8n."
         },
         {
           "name": "Zapier",
-          "img": "assets/tools/zapier.svg"
+          "img": "assets/tools/zapier.svg",
+          "what": "The best-known no-code tool for linking apps: when something happens in one app, do something in another.",
+          "use": "For quick app-to-app hand-offs on teams already using it."
         }
       ]
     },
@@ -258,27 +266,39 @@
       "items": [
         {
           "name": "Claude Code",
-          "img": "assets/tools/claude-code.svg"
+          "img": "assets/tools/claude-code.svg",
+          "what": "Anthropic's AI coding agent. It works in my files and terminal, builds, tests and commits code.",
+          "use": "My daily driver. It's Raphael, my main AI. It built this website, my apps and my second-brain system."
         },
         {
           "name": "Claude",
-          "img": "assets/tools/claude.svg"
+          "img": "assets/tools/claude.svg",
+          "what": "Anthropic's AI assistant, in the browser and on my phone.",
+          "use": "Thinking, writing and planning on the go. My phone chats drop notes into my second brain."
         },
         {
           "name": "ChatGPT",
-          "img": "assets/tools/chatgpt.svg"
+          "img": "assets/tools/chatgpt.svg",
+          "what": "OpenAI's AI assistant.",
+          "use": "Quick drafts, brainstorming and second opinions."
         },
         {
           "name": "Gemini",
-          "img": "assets/tools/gemini.svg"
+          "img": "assets/tools/gemini.svg",
+          "what": "Google's AI assistant, built into Google Workspace.",
+          "use": "Research and help inside Google Docs, Gmail and Sheets."
         },
         {
           "name": "Copilot",
-          "img": "assets/tools/copilot.png"
+          "img": "assets/tools/copilot.png",
+          "what": "Microsoft's AI assistant inside Microsoft 365.",
+          "use": "Summaries and drafts inside Outlook, Teams, Word and Excel at work."
         },
         {
           "name": "Google Flow",
-          "img": "assets/tools/google-flow.png"
+          "img": "assets/tools/google-flow.png",
+          "what": "Google's AI filmmaking tool for generating images and video clips.",
+          "use": "My AI dramas, and the face images and clips on this website."
         }
       ]
     },
@@ -287,31 +307,45 @@
       "items": [
         {
           "name": "Microsoft 365",
-          "img": "assets/tools/microsoft-365.png"
+          "img": "assets/tools/microsoft-365.png",
+          "what": "Microsoft's work suite: Outlook, Teams, Excel, Word, PowerPoint, SharePoint and more.",
+          "use": "My day-to-day toolkit at work as an admin VA and team lead."
         },
         {
           "name": "Teams",
-          "img": "assets/tools/microsoft-teams.svg"
+          "img": "assets/tools/microsoft-teams.svg",
+          "what": "Microsoft's chat, meetings and team collaboration app.",
+          "use": "Daily team coordination, plus automated alerts my flows send to the team."
         },
         {
           "name": "Outlook",
-          "img": "assets/tools/microsoft-outlook.svg"
+          "img": "assets/tools/microsoft-outlook.svg",
+          "what": "Microsoft's email and calendar app.",
+          "use": "Managing executive inboxes and calendars: scheduling, travel and meeting confirmations."
         },
         {
           "name": "SharePoint",
-          "img": "assets/tools/sharepoint.svg"
+          "img": "assets/tools/sharepoint.svg",
+          "what": "Microsoft's shared file and intranet platform.",
+          "use": "Shared team files, and the document libraries my Power Automate flows read from and write to."
         },
         {
           "name": "Excel",
-          "img": "assets/tools/excel.svg"
+          "img": "assets/tools/excel.svg",
+          "what": "Microsoft's spreadsheet app.",
+          "use": "Trackers, finance claims, KPI dashboards and duty rosters, often filled in automatically by my flows."
         },
         {
           "name": "Word",
-          "img": "assets/tools/word.svg"
+          "img": "assets/tools/word.svg",
+          "what": "Microsoft's document editor.",
+          "use": "SOPs, checklists and workflow guides so a team can run things without me."
         },
         {
           "name": "PowerPoint",
-          "img": "assets/tools/powerpoint.svg"
+          "img": "assets/tools/powerpoint.svg",
+          "what": "Microsoft's slide deck app.",
+          "use": "Editing and polishing presentations for executives."
         }
       ]
     },
@@ -320,35 +354,51 @@
       "items": [
         {
           "name": "Google Workspace",
-          "img": "assets/tools/google-workspace.png"
+          "img": "assets/tools/google-workspace.png",
+          "what": "Google's work suite: Gmail, Drive, Docs, Sheets, Slides, Forms and more.",
+          "use": "My personal and client work, and the apps my n8n workflows connect to."
         },
         {
           "name": "Google Drive",
-          "img": "assets/tools/google-drive.svg"
+          "img": "assets/tools/google-drive.svg",
+          "what": "Google's cloud storage for files and folders.",
+          "use": "Storing and sharing files. My résumé on this site opens from Drive."
         },
         {
           "name": "Gmail",
-          "img": "assets/tools/gmail.svg"
+          "img": "assets/tools/gmail.svg",
+          "what": "Google's email service.",
+          "use": "My main inbox, and a common trigger for automations."
         },
         {
           "name": "Google Docs",
-          "img": "assets/tools/google-docs.svg"
+          "img": "assets/tools/google-docs.svg",
+          "what": "Google's online document editor.",
+          "use": "Writing and sharing docs, SOPs and notes with clients."
         },
         {
           "name": "Google Sheets",
-          "img": "assets/tools/google-sheets.svg"
+          "img": "assets/tools/google-sheets.svg",
+          "what": "Google's online spreadsheet app.",
+          "use": "Trackers and logs, like my job-application tracker that my AI fills in."
         },
         {
           "name": "Google Slides",
-          "img": "assets/tools/google-slides.svg"
+          "img": "assets/tools/google-slides.svg",
+          "what": "Google's online presentation app.",
+          "use": "Quick decks and visual summaries."
         },
         {
           "name": "Google Forms",
-          "img": "assets/tools/google-forms.svg"
+          "img": "assets/tools/google-forms.svg",
+          "what": "Google's tool for surveys and forms.",
+          "use": "Collecting requests and answers that flow straight into Sheets."
         },
         {
           "name": "Apps Script",
-          "img": "assets/tools/google-apps-script.svg"
+          "img": "assets/tools/google-apps-script.svg",
+          "what": "Google's built-in coding tool that automates Gmail, Sheets, Docs and Drive.",
+          "use": "Small scripts that add custom automation inside Google apps."
         }
       ]
     },
@@ -357,19 +407,27 @@
       "items": [
         {
           "name": "Asana",
-          "img": "assets/tools/asana.svg"
+          "img": "assets/tools/asana.svg",
+          "what": "A project and task management tool.",
+          "use": "Tracking team requests, progress and documentation every day."
         },
         {
           "name": "Airtable",
-          "img": "assets/tools/airtable.svg"
+          "img": "assets/tools/airtable.svg",
+          "what": "A spreadsheet-database hybrid for organising records.",
+          "use": "Lightweight databases for tracking and organising data."
         },
         {
           "name": "GoHighLevel",
-          "img": "assets/tools/gohighlevel.png"
+          "img": "assets/tools/gohighlevel.png",
+          "what": "An all-in-one CRM and marketing platform for agencies.",
+          "use": "CRM pipelines, and setting up AI voice receptionists."
         },
         {
           "name": "LOXO CRM",
-          "img": "assets/tools/loxo-crm.png"
+          "img": "assets/tools/loxo-crm.png",
+          "what": "A recruiting CRM for managing candidates and outreach.",
+          "use": "Running the ESG membership outreach pipeline."
         }
       ]
     },
@@ -378,23 +436,33 @@
       "items": [
         {
           "name": "HTML/CSS/JS",
-          "img": "assets/tools/html5.svg"
+          "img": "assets/tools/html5.svg",
+          "what": "The building blocks of every website.",
+          "use": "Hand-built sites like this one, with no framework."
         },
         {
           "name": "Supabase",
-          "img": "assets/tools/supabase.svg"
+          "img": "assets/tools/supabase.svg",
+          "what": "An open-source backend: database, logins and storage.",
+          "use": "The database behind some of my apps."
         },
         {
           "name": "Vercel",
-          "img": "assets/tools/vercel.svg"
+          "img": "assets/tools/vercel.svg",
+          "what": "A hosting platform for websites and web apps.",
+          "use": "Putting my web apps online."
         },
         {
           "name": "GitHub",
-          "img": "assets/tools/github.svg"
+          "img": "assets/tools/github.svg",
+          "what": "Where code lives and gets shared.",
+          "use": "Every project I build lives here, including this site."
         },
         {
           "name": "Remotion",
-          "img": "assets/tools/remotion.png"
+          "img": "assets/tools/remotion.png",
+          "what": "A tool for making videos with code.",
+          "use": "Building product and promo videos programmatically."
         }
       ]
     },
@@ -403,19 +471,27 @@
       "items": [
         {
           "name": "Canva",
-          "img": "assets/tools/canva.svg"
+          "img": "assets/tools/canva.svg",
+          "what": "An easy online design tool.",
+          "use": "Social posts, thumbnails and quick visuals."
         },
         {
           "name": "CapCut",
-          "img": "assets/tools/capcut.png"
+          "img": "assets/tools/capcut.png",
+          "what": "A video editor for short-form content.",
+          "use": "Editing Reels, TikToks and Shorts."
         },
         {
           "name": "Articulate 360",
-          "img": "assets/tools/articulate-360.png"
+          "img": "assets/tools/articulate-360.png",
+          "what": "A suite for building e-learning courses.",
+          "use": "Building interactive training modules (certified 2025)."
         },
         {
           "name": "Obsidian",
-          "img": "assets/tools/obsidian.svg"
+          "img": "assets/tools/obsidian.svg",
+          "what": "A note-taking app that links notes into a knowledge graph.",
+          "use": "My second brain: goals, projects, memory and journals that my AI reads and updates."
         }
       ]
     }
@@ -761,5 +837,6 @@
     "Project Coordination",
     "Administrative Support",
     "E-Learning"
-  ]
+  ],
+  "toolbox_intro": "These are the tools I use to automate work, run a team and build things. Tap any ball to see what it is and what I use it for."
 }

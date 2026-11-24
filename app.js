@@ -45,6 +45,7 @@
     openers.set(d, opener || document.activeElement);
     d.classList.remove('closing');
     if (!d.open) d.showModal();
+    root.classList.add('modal-lock');   /* the page behind stays still; only the modal scrolls */
   }
   function closeDlg(d) {
     if (!d.open || d.classList.contains('closing')) return;
@@ -59,6 +60,7 @@
     d.addEventListener('click', function (e) { if (e.target === d) closeDlg(d); });
     d.addEventListener('close', function () {
       d.style.transform = ''; d.style.transition = ''; d.classList.remove('dragging');
+      if (!document.querySelector('dialog[open]')) root.classList.remove('modal-lock');
       var o = openers.get(d);
       if (o && o.focus && document.contains(o) && !document.querySelector('dialog[open]')) { try { o.focus({ preventScroll: true }); } catch (e) {} }
     });
@@ -343,7 +345,7 @@
   var BALL_HUE = ['#ff6d3f', '#7c5cff', '#1f8fff', '#16a34a', '#e0447c', '#f5a524', '#0ea5a4', '#8b5e3c'];
   function renderTools() {
     var box = $('#tools'); if (!box) return;
-    var html = '<div class="pit" id="pit" data-step="Toolbox"><p class="pit-hint mono">Grab a ball and throw it</p>', gi = 0;
+    var html = '<div class="pit" id="pit" data-step="Toolbox"><p class="pit-hint mono">Tap a ball to see what it does, or grab one and throw it</p>', gi = 0;
     (P().toolbox || []).forEach(function (g) {
       var hue = BALL_HUE[gi++ % BALL_HUE.length];
       g.items.forEach(function (it) {
@@ -357,8 +359,19 @@
       img.addEventListener('error', function () { var s2 = document.createElement('span'); s2.innerHTML = ic('glyph'); img.replaceWith(s2.firstChild); });
     });
     Pit.init($('#pit'));
+    box.addEventListener('click', function (e) { var el = e.target.closest('.ball'); if (el && e.detail === 0) openTool(el.dataset.name, el); });   /* keyboard: Enter/Space */
   }
 
+  function openTool(name, opener) {
+    var hit = null; (P().toolbox || []).forEach(function (g) { g.items.forEach(function (it) { if (it.name === name) hit = { it: it, g: g.group }; }); });
+    if (!hit) return; var it = hit.it, d = $('#dlg-tool');
+    $('#dt-title').innerHTML = (it.img ? '<img class="dt-ic" src="' + esc(it.img) + '" alt="" width="28" height="28">' : '') + esc(it.name);
+    $('#dt-body').innerHTML = '<p class="mono dt-group">' + esc(hit.g) + '</p>' +
+      (it.what ? '<div><h3 class="dt-h">What it is</h3><p>' + esc(it.what) + '</p></div>' : '') +
+      (it.use ? '<div><h3 class="dt-h">What I use it for</h3><p>' + esc(it.use) + '</p></div>' : '') +
+      (P().toolbox_intro ? '<p class="dt-note">' + esc(P().toolbox_intro) + '</p>' : '');
+    openDlg(d, opener);
+  }
   var Pit = (function () {
     var box = null, tip = null, bs = [], raf = 0, last = 0, seen = false, io = null, grab = null, loud = 0, lastClack = 0, nudgeT = 0, W = 0, H = 0;
     function rnd(a, b) { return a + Math.random() * (b - a); }
@@ -466,6 +479,7 @@
       b.vx = Math.max(-2400, Math.min(2400, (l.x - f.x) / dt)); b.vy = Math.max(-2400, Math.min(2400, (l.y - f.y) / dt));
       if (performance.now() - l.t > 120) { b.vx = b.vy = 0; }
       b.el.classList.remove('held'); box.classList.remove('grabbing'); grab = null;
+      if (b.moved < 6 && performance.now() - b.hist[0].t < 400 && h.length <= 3) { b.vx = b.vy = 0; hideTip(0); openTool(b.el.dataset.name, b.el); return; }
       loud = performance.now() + 2600; hideTip(b.moved < 6 ? 1400 : 500); wake();
     }
     function init(el) {
