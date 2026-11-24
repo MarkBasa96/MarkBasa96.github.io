@@ -1545,3 +1545,8 @@ html.modal-lock, html.modal-lock body { overflow: hidden; overscroll-behavior: n
 }
 @keyframes app-shine { 0%, 55% { background-position: 150% 0; } 85%, 100% { background-position: -60% 0; } }
 @media (prefers-reduced-motion: reduce) { .livestrip .app3d, .livestrip .app3d::after { animation: none; } }
+
+/* sidebar badge: Joe's neutral photo instead of "JB" (2026-11-24) */
+.monogram { padding: 0; }
+.monogram .mono-face { display: block; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background: #f3f3f3; }
+.monogram .mono-face img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.75); transform-origin: 50% 32%; }
