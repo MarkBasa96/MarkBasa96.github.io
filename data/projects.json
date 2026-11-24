@@ -210,17 +210,19 @@
       "icon": "quiz",
       "group": "apps",
       "one_liner": "Classroom quiz and game maker built for a teacher, ten game modes.",
-      "status": "building",
-      "visibility": "private",
-      "url": "",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://kimgenious.vercel.app",
       "repo": "",
       "tags": [
         "Education",
-        "Private"
+        "Supabase",
+        "Games"
       ],
-      "details": "",
-      "featured": false,
-      "icon_img": "assets/apps/kimgenious.png"
+      "details": "A quiz and game maker built for a teacher. She builds an activity once and plays it in class in different game modes, with sound, timers and a projector mode. Students join by a short link. The code stays private; the app is live to try.",
+      "featured": true,
+      "icon_img": "assets/apps/kimgenious.png",
+      "updated": "2026-11"
     },
     {
       "id": "job-applier",

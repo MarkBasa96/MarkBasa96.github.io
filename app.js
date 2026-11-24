@@ -915,7 +915,7 @@
     }).join('');
     var ls = $('#livestrip');
     if (ls) ls.innerHTML = pubList().map(function (p) {
-      return '<button class="live-item node" type="button" data-open="' + esc(p.id) + '">' + pic(p) + '<span><b>' + esc(p.name) + '</b><small>' + esc(p.one_liner) + '</small></span></button>';
+      return '<button class="live-item node" type="button" data-open="' + esc(p.id) + '"><span class="app3d">' + pic(p) + '</span><span><b>' + esc(p.name) + '</b><small>' + esc(p.one_liner) + '</small></span></button>';
     }).join('');
   }
   function act(name, opener) {
