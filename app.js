@@ -371,9 +371,11 @@
       W = box.clientWidth;
       if (root.classList.contains('fit-tab')) {   /* phone: exactly the space left above the bottom bar */
         var fh = Math.max(200, fitSpace(box, 8)); box.style.height = fh + 'px';
-        rFit = Math.max(15, Math.min(24, Math.floor(Math.sqrt(W * fh * 0.30 / (bs.length * Math.PI))))); return;
+        rFit = Math.max(11, Math.min(24, Math.floor(Math.sqrt(W * fh * 0.30 / (bs.length * Math.PI))))); return;   /* more tools = smaller balls, always one screen */
       }
       rFit = 0;
+      var cap = Math.floor(Math.sqrt(W * 600 * 0.30 / (Math.max(1, bs.length) * Math.PI)));   /* desktop: shrink balls only when there are too many to fit */
+      if (cap < radius()) rFit = Math.max(16, cap);
       var r = radius(), cell = 2 * r + 16;
       var h = Math.ceil(bs.length * cell * cell * 1.35 / Math.max(1, W)) + 2 * r;
       if (W >= 700) h = Math.max(h, Math.min(640, window.innerHeight - 230));   /* desktop: use the screen height so the balls fill what you see */

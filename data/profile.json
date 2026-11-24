@@ -283,16 +283,78 @@
       ]
     },
     {
-      "group": "Work",
+      "group": "Microsoft 365",
       "items": [
         {
           "name": "Microsoft 365",
           "img": "assets/tools/microsoft-365.png"
         },
         {
+          "name": "Teams",
+          "img": "assets/tools/microsoft-teams.svg"
+        },
+        {
+          "name": "Outlook",
+          "img": "assets/tools/microsoft-outlook.svg"
+        },
+        {
+          "name": "SharePoint",
+          "img": "assets/tools/sharepoint.svg"
+        },
+        {
+          "name": "Excel",
+          "img": "assets/tools/excel.svg"
+        },
+        {
+          "name": "Word",
+          "img": "assets/tools/word.svg"
+        },
+        {
+          "name": "PowerPoint",
+          "img": "assets/tools/powerpoint.svg"
+        }
+      ]
+    },
+    {
+      "group": "Google Workspace",
+      "items": [
+        {
           "name": "Google Workspace",
           "img": "assets/tools/google-workspace.png"
         },
+        {
+          "name": "Google Drive",
+          "img": "assets/tools/google-drive.svg"
+        },
+        {
+          "name": "Gmail",
+          "img": "assets/tools/gmail.svg"
+        },
+        {
+          "name": "Google Docs",
+          "img": "assets/tools/google-docs.svg"
+        },
+        {
+          "name": "Google Sheets",
+          "img": "assets/tools/google-sheets.svg"
+        },
+        {
+          "name": "Google Slides",
+          "img": "assets/tools/google-slides.svg"
+        },
+        {
+          "name": "Google Forms",
+          "img": "assets/tools/google-forms.svg"
+        },
+        {
+          "name": "Apps Script",
+          "img": "assets/tools/google-apps-script.svg"
+        }
+      ]
+    },
+    {
+      "group": "Work",
+      "items": [
         {
           "name": "Asana",
           "img": "assets/tools/asana.svg"
