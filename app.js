@@ -1934,3 +1934,22 @@
     }).catch(noop);
   }
 })();
+
+/* Phones: hide the top and bottom bars while scrolling down, show them again on any scroll up (2026-11-24) */
+(function () {
+  var root = document.documentElement, mq = window.matchMedia('(max-width: 959px)'), lastY = window.pageYOffset, acc = 0, backT = 0;
+  function show() {
+    if (!root.classList.contains('bars-hide')) return;
+    root.classList.remove('bars-hide'); root.classList.add('bars-back');
+    clearTimeout(backT); backT = setTimeout(function () { root.classList.remove('bars-back'); }, 600);
+  }
+  window.addEventListener('scroll', function () {
+    var y = window.pageYOffset, dy = y - lastY; lastY = y;
+    if (!mq.matches || root.classList.contains('nav-open') || root.classList.contains('modal-lock') || document.querySelector('.m-search.open, .m-sbox.open')) { show(); acc = 0; return; }
+    if (y < 60) { show(); acc = 0; return; }
+    acc = (acc > 0) === (dy > 0) ? acc + dy : dy;   /* add up movement in one direction, so tiny jitters do nothing */
+    if (acc > 24) root.classList.add('bars-hide');
+    else if (acc < -12) show();
+  }, { passive: true });
+  mq.addEventListener && mq.addEventListener('change', show);
+})();

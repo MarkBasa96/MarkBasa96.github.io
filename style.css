@@ -1554,3 +1554,11 @@ html.modal-lock, html.modal-lock body { overflow: hidden; overscroll-behavior: n
 /* iPhone Safari: when the page is shorter than the screen (FAQ on phones), it cut the burger drawer, its dimmer
    and the Sound/Theme foot off at the end of the page. While the drawer or a modal is open, the page is at least one screen tall. (2026-11-24) */
 html.nav-open body, html.modal-lock body { min-height: 100vh; min-height: 100dvh; }
+
+/* Phones: scroll down and the top bar + bottom bar fade away; scroll up and they come back (2026-11-24) */
+@media (max-width: 959px) {
+  .topbar { transition: opacity .5s ease, transform .5s ease; }
+  html.bars-hide .topbar { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+  html.bars-hide:not(.on-contact) .bottombar { opacity: 0; transform: translateY(105%); pointer-events: none; transition: transform .5s ease, opacity .5s ease; }
+  html.bars-back:not(.on-contact) .bottombar { transition: transform .5s ease, opacity .5s ease; }
+}
