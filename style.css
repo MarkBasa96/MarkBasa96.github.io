@@ -1550,3 +1550,7 @@ html.modal-lock, html.modal-lock body { overflow: hidden; overscroll-behavior: n
 .monogram { padding: 0; }
 .monogram .mono-face { display: block; width: 100%; height: 100%; border-radius: inherit; overflow: hidden; background: #f3f3f3; }
 .monogram .mono-face img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.75); transform-origin: 50% 32%; }
+
+/* iPhone Safari: when the page is shorter than the screen (FAQ on phones), it cut the burger drawer, its dimmer
+   and the Sound/Theme foot off at the end of the page. While the drawer or a modal is open, the page is at least one screen tall. (2026-11-24) */
+html.nav-open body, html.modal-lock body { min-height: 100vh; min-height: 100dvh; }
