@@ -1524,4 +1524,3 @@ html.modal-lock, html.modal-lock body { overflow: hidden; overscroll-behavior: n
 #dlg-tool .dt-ic { width: 28px; height: 28px; border-radius: 50%; background: #fff; padding: 3px; object-fit: contain; }
 #dlg-tool .dt-group { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, #888); }
 #dlg-tool .dt-h { font-size: .8rem; font-weight: 600; margin-bottom: 4px; color: var(--accent-ink); }
-#dlg-tool .dt-note { font-size: .85rem; opacity: .7; border-top: 1px solid var(--line, rgba(127,127,127,.25)); padding-top: 12px; }

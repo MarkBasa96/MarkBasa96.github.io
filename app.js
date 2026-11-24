@@ -368,8 +368,7 @@
     $('#dt-title').innerHTML = (it.img ? '<img class="dt-ic" src="' + esc(it.img) + '" alt="" width="28" height="28">' : '') + esc(it.name);
     $('#dt-body').innerHTML = '<p class="mono dt-group">' + esc(hit.g) + '</p>' +
       (it.what ? '<div><h3 class="dt-h">What it is</h3><p>' + esc(it.what) + '</p></div>' : '') +
-      (it.use ? '<div><h3 class="dt-h">What I use it for</h3><p>' + esc(it.use) + '</p></div>' : '') +
-      (P().toolbox_intro ? '<p class="dt-note">' + esc(P().toolbox_intro) + '</p>' : '');
+      (it.use ? '<div><h3 class="dt-h">What I use it for</h3><p>' + esc(it.use) + '</p></div>' : '');
     openDlg(d, opener);
   }
   var Pit = (function () {
