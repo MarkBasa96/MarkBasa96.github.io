@@ -23,6 +23,7 @@ Every job goes through the same five steps: map the process, build the smallest 
 - [GoniLift](https://markbasa96.github.io/gonilift/): Free offline AI vocal remover for Windows; karaoke, key change, loop.
 - [Automation Roadmap](https://automation-roadmap-nine.vercel.app): 12-week interactive path from VA to AI automation specialist, with a study-buddy cat game.
 - [Jarvis AI Brain](https://github.com/MarkBasa96/jarvis-ai-brain): Obsidian second brain plus a hands-free voice assistant for Claude Code.
+- [Second Brain Starter](https://github.com/MarkBasa96/second-brain-starter): Build an Obsidian second brain your AI can remember, with a living 3D brain graph.
 - [Ask Her Out](https://ask-her-out-orpin-psi.vercel.app): Playful page that asks someone on a date; the No button never gives up.
 - [KimGenious](https://kimgenious.vercel.app): Classroom quiz and game maker built for a teacher, ten game modes.
 

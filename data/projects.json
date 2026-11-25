@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-21",
+  "last_updated": "2026-11-25",
   "projects": [
     {
       "id": "gastos",
@@ -130,6 +130,27 @@
       "details": "An Obsidian second-brain vault together with a hands-free voice assistant for Claude Code. It listens for a wake word, transcribes with Whisper and streams replies back.",
       "featured": true,
       "updated": "2026-09"
+    },
+    {
+      "id": "second-brain-starter",
+      "name": "Second Brain Starter",
+      "icon": "brain",
+      "group": "ai",
+      "one_liner": "Build an Obsidian second brain your AI can remember, with a living 3D brain graph.",
+      "status": "live",
+      "status_label": "Public repo",
+      "visibility": "public",
+      "url": "https://github.com/MarkBasa96/second-brain-starter",
+      "repo": "MarkBasa96/second-brain-starter",
+      "tags": [
+        "Obsidian",
+        "Claude Code",
+        "Plugin"
+      ],
+      "details": "A free kit for building your own Obsidian second brain, either from scratch or on top of a vault you already have. An AI interview sets it up, and a plugin draws your real notes and links as a glowing 3D brain. Nothing in your existing notes is moved or deleted.",
+      "featured": true,
+      "updated": "2026-11",
+      "icon_img": "assets/apps/second-brain-starter.png"
     },
     {
       "id": "ask-her-out",
