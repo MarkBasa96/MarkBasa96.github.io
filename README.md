@@ -8,9 +8,9 @@ My own portfolio, résumé and contact page in one. It is built like a workflow 
 |---|---|
 | ![Home, light theme](docs/screenshots/home-desktop-light.png) | ![Home, dark theme](docs/screenshots/home-desktop-dark.png) |
 
-| Work | Team | Phone |
+| Work | Team (phone) | Home (phone) |
 |---|---|---|
-| ![Work tab, dark theme](docs/screenshots/work-desktop-dark.png) | ![Team tab with the org chart](docs/screenshots/team-desktop-light.png) | ![Home on a phone](docs/screenshots/home-phone-light.png) |
+| ![Work tab, dark theme](docs/screenshots/work-desktop-dark.png) | ![Team tab on a phone: the pixel agents sit, read, walk and play under Joe's photo](docs/screenshots/team-phone-light.png) | ![Home on a phone](docs/screenshots/home-phone-light.png) |
 
 ## What is on it
 
@@ -18,10 +18,12 @@ My own portfolio, résumé and contact page in one. It is built like a workflow 
 - **Work**: live projects with details, filters, and a private "in the lab" list.
 - **How I work**: the five steps every job goes through, drawn as a small workflow.
 - **Second brain**: a 3D graph of the note titles in my Obsidian vault (titles only).
-- **Experience**, **Toolbox**, **Team** (my AI agents as an org chart, each with a modal), and **Contact**.
+- **Experience**, **Toolbox** (every tool as a ball you can throw), and **Contact** with an FAQ.
+- **Team**: my AI agents as living pixel characters. They walk, read, nap, play cards and catch, show off their signature moves, and sometimes walk up to whisper to my photo, which watches them and reacts. Drag one to carry it; let go and it drops with a pixel dust puff. Tap one to see what it does. During a Run they line up as an org chart.
+- **Mind Miners Imposters** and my other live apps, as cards and app icons.
 - **Book a call** opens my Google Calendar booking page.
 - A portrait that follows your cursor, a light switch that puts me to sleep, a pixel cat called Demi, and a small cat game.
-- Light and dark theme, phone layout with a tab strip, keyboard command palette (`Ctrl K`), soft click and hover sounds with a mute button, and a "Pause motion" switch. Reduced-motion settings are respected.
+- Light and dark theme, phone layout with a menu drawer and pull to refresh, keyboard search (`Ctrl K`), soft click and hover sounds with a mute button. Reduced-motion settings are respected.
 
 ## How it is built
 
@@ -31,7 +33,7 @@ Plain HTML, CSS and JavaScript. No framework, no build step, no package manager.
 |---|---|
 | `index.html` | Page shell, tab panels, dialogs, and an inline copy of the data for first paint |
 | `style.css` | Theme tokens, layout, node and wire styling |
-| `app.js` | Rendering, tabs, workflow runner, face, cat, sounds, command palette |
+| `app.js` | Rendering, tabs, workflow runner, face, the living Team tab, cat, sounds, search |
 | `brain.js` | The 3D second-brain graph (three.js, loaded from `assets/brain/`) |
 | `game.js` | The cat mini game |
 | `data/projects.json` | Every project card |
@@ -57,7 +59,7 @@ Add one object to `data/projects.json` with `id`, `name`, `one_liner`, `status`,
 
 - Built with [Claude Code](https://claude.com/claude-code).
 - The photos and clips of me are AI-generated from my likeness (Google Flow), so I look a little less polished on a call. Still me, just enhanced.
-- The team avatars are pixel fan art of each agent's namesake character.
+- The team avatars are pixel fan art of each agent's namesake character; the activity poses were generated in Google Flow and cut with small scripts.
 - The pixel cat sheet was generated in Google Flow.
 - 3D graph uses [three.js](https://threejs.org) (MIT, license in `assets/brain/LICENSE`).
 - Tool and app logos belong to their owners and are shown only to name the tools I use.
