@@ -567,9 +567,10 @@
       '<div class="yard" id="yard">' + crew.map(function (c) {
         var a = c[0], id = c[1];
         var key = esc(a.sprite || id), src = 'assets/team/' + key + '-front.webp';
-        return '<button class="walker" type="button" data-agent="' + esc(id) + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body">' +
+        return '<button class="walker" type="button" data-agent="' + esc(id) + '" data-key="' + key + '" aria-label="' + esc(a.name) + ': ' + esc(a.role) + '"><span class="wk-body">' +
           '<img class="wk-top" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-l" src="' + src + '" alt="" draggable="false" decoding="async"><img class="wk-leg wk-r" src="' + src + '" alt="" draggable="false" decoding="async">' +
           '<span class="wk-side"><img class="wk-s1" src="assets/team/' + key + '-side1.webp" alt="" draggable="false" decoding="async"><img class="wk-s2" src="assets/team/' + key + '-side2.webp" alt="" draggable="false" decoding="async"></span>' +
+          '<span class="wk-back"><img class="wk-b1" alt="" draggable="false" decoding="async"><img class="wk-b2" alt="" draggable="false" decoding="async"></span><span class="wk-pose"></span>' +
           '</span><i class="wk-shadow" aria-hidden="true"></i></button>';
       }).join('') + '</div></div>' +
       '<div class="org" id="org"><svg class="org-wires" aria-hidden="true"></svg><span class="peer-tag mono" hidden>peer</span>' +
@@ -578,7 +579,7 @@
       '<div class="org-row org-r2">' + orgNode(levi, 'levi') + '</div>' +
       '<div class="org-row org-r3">' + depts.map(function (a) { var id = a.name.toLowerCase(); return '<div class="dept"><span class="dept-label mono">' + esc(a.dept) + '</span>' + orgNode(a, id) + '</div>'; }).join('') + '</div></div></div>';
     tb.innerHTML = ht;
-    Yard.init($('#yard'));
+    Yard.init($('#yard')); JoeCam.init($('.team-joe img', tb));
     if (orgRO) orgRO.disconnect();
     if ('ResizeObserver' in window) { orgRO = new ResizeObserver(layoutOrg); orgRO.observe($('#org')); }
   }
@@ -590,31 +591,39 @@
   }
 
   /* The crew: agents stroll over to a teammate, stop beside them facing each other for a short chat,
-     then wander off again. Anyone walking yields to whoever is in their way instead of bumping into them. */
+     then wander off again. Anyone walking yields to whoever is in their way instead of bumping into them.
+     Living-agents layer (Phase 3): back view, pick up and drop (pixel dust + cracks), solo and pair activities,
+     signature moves, gossip with Joe. A small "director" holds the limits so the yard never gets crowded.
+     Everything is drawn inside .yard: two pixel canvases (under = cracks, over = dust and effects). */
   var Yard = (function () {
-    var box = null, ws = [], raf = 0, last = 0, seen = false, io = null, GAP = 66;
-    function fitYard() {
-      if (!box) return;
-      if (root.classList.contains('fit-tab')) { var h = Math.max(170, fitSpace(box, 6)); box.style.height = h + 'px'; box.classList.toggle('compact', h < 330); }
-      else { box.style.height = ''; box.classList.remove('compact'); }
-      var w0 = ws[0]; if (w0 && w0.el.offsetWidth) { SX = w0.el.offsetWidth + 2; SY = Math.round(w0.el.offsetHeight * .85); GAP = SX + 4; }
-    }
+    var box = null, ws = [], raf = 0, last = 0, seen = false, io = null, GAP = 66, SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else (re-measured in fitYard) */
+    var phoneMQ = window.matchMedia('(max-width: 719px)');
+    /* tunable constants (listed in 02-process/team-activities-build-notes.md) */
+    var K = { sway: 70, damp: 7, maxAng: 35 * Math.PI / 180, lift: .45, grav: 2400, fric: 5, maxV: 700, toss: 500, hardV: 300,
+      gossip1: [20, 35], gossipN: [45, 80], gossipNPhone: [60, 100], sigGap: [4, 9], sigCool: 40, waveWindow: 10000 };
+    var ACTST = { act: 1, pair: 1, sig: 1, gossip: 1 };
+    var SIDEP = { whisper: 1, throw: 1, act1: 1, act2: 1, act3: 1, sheathe: 1 };            /* side-type frames face RIGHT; the code mirrors them */
+    var ACTOK = { levi: ['act1', 'act2', 'act3'], kenshin: ['act1', 'act2', 'sheathe'], senku: ['act1', 'act2'], erina: ['act1', 'act2'], rohan: ['act1', 'act2'] };
+    var drag = null, swallow = 0, lastPtr = -1e9, gossipT = 0, sigAt = -1e9, sigGap = 6, asideT = 0, S = 3;
     function rnd(a, b) { return a + Math.random() * (b - a); }
     function W() { return box.clientWidth; }
     function H() { return box.clientHeight; }
     function bw(w) { return w.el.offsetWidth || 64; }
     function bh(w) { return w.el.offsetHeight || 80; }
+    function phone() { return phoneMQ.matches; }
     function clampX(w, x) { return Math.max(0, Math.min(W() - bw(w), x)); }
     function clampY(w, y) { return Math.max(6, Math.min(H() - bh(w) - 2, y)); }
-    function place(w) { w.el.style.transform = 'translate(' + w.x.toFixed(1) + 'px,' + w.y.toFixed(1) + 'px)'; w.el.style.zIndex = Math.round(w.y) + 10; }
-    function face(w, dir) { w.el.classList.toggle('face-l', dir < 0); w.el.classList.toggle('face-r', dir > 0); }
+    function place(w) {
+      w.el.style.transform = 'translate(' + w.x.toFixed(1) + 'px,' + w.y.toFixed(1) + 'px)';
+      w.el.style.zIndex = (w.st === 'held' || w.st === 'fall') ? 9000 : Math.round(w.y) + 10;
+    }
+    function face(w, dir) { if (dir) w.fd = dir > 0 ? 1 : -1; w.el.classList.toggle('face-l', dir < 0); w.el.classList.toggle('face-r', dir > 0); }
     function setState(w, st) {
-      w.st = st; w.el.classList.toggle('walking', st === 'walk'); w.el.classList.toggle('talking', st === 'chat');
-      if (st !== 'walk' && st !== 'chat') { face(w, 0); w.el.classList.remove('side'); }
+      w.st = st; w.el.classList.toggle('walking', st === 'walk'); w.el.classList.toggle('talking', st === 'chat'); w.el.classList.toggle('acting', !!ACTST[st]);
+      if (st !== 'walk' && st !== 'chat' && !ACTST[st]) { face(w, 0); w.el.classList.remove('side', 'back'); }
       if (st === 'chat') w.el.classList.add('side');
     }
-    function free(o) { return o.st === 'idle' && !o.host && !o.friend; }
-    var SX = 62, SY = 72;   /* personal space: nobody stands or walks inside this box around someone else (re-measured in fitYard) */
+    function free(o) { return o.st === 'idle' && !o.host && !o.friend && !o.gos && !o.pk; }
     function taken(w, x, y, skip) {
       return ws.some(function (o) {
         if (o === w || o === skip) return false;
@@ -626,10 +635,128 @@
       for (var i = 0; i < 24; i++) { var x = clampX(w, rnd(0, W())), y = clampY(w, rnd(0, H())); if (!taken(w, x, y)) { w.tx = x; w.ty = y; return; } }
       w.tx = w.x; w.ty = w.y;   /* nowhere free right now: stay put */
     }
-    function plan(w) {
-      w.friend = null; w.blocked = 0; w.via = null; w.detours = 0;
+
+    /* ---------- pixel layer: two canvases, whole-pixel squares only (no anti-aliasing) ---------- */
+    var cu = null, co = null, gu = null, go = null, g = null, dirtyO = false, dirtyU = false, fxList = [], cracks = [];
+    function mkCanvas(cls) { var c = document.createElement('canvas'); c.className = 'yard-fx ' + cls; c.setAttribute('aria-hidden', 'true'); return c; }
+    function fxSize() {
+      if (!co || !box) return;
+      S = phone() ? 2 : 3;   /* one canvas pixel = S screen pixels (3 desktop, 2 phone) */
+      var cw = Math.ceil(W() / S), ch = Math.ceil(H() / S);
+      [cu, co].forEach(function (c) { c.width = cw; c.height = ch; c.style.width = cw * S + 'px'; c.style.height = ch * S + 'px'; });
+      gu = cu.getContext('2d'); go = co.getContext('2d'); dirtyO = dirtyU = false;
+    }
+    function clearFx() {
+      if (go && dirtyO) { go.clearRect(0, 0, co.width, co.height); dirtyO = false; }
+      if (gu && dirtyU) { gu.clearRect(0, 0, cu.width, cu.height); dirtyU = false; }
+    }
+    function R(x, y, w, h, c, a) {
+      g.globalAlpha = a == null ? 1 : a; g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w || 1, h || 1);
+      if (g === go) dirtyO = true; else dirtyU = true;
+    }
+    function line(x0, y0, x1, y1, c, a) { var n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1); for (var i = 0; i <= n; i++) R(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n, 1, 1, c, a); }
+    function arcPx(cx, cy, rx, ry, a0, a1, c, a) { var n = Math.max(6, Math.round(Math.abs(a1 - a0) * Math.max(rx, ry))); for (var i = 0; i <= n; i++) { var an = a0 + (a1 - a0) * i / n; R(cx + Math.cos(an) * rx, cy + Math.sin(an) * ry, 1, 1, c, a); } }
+    function plus(x, y, c, a) { R(x - 1, y, 3, 1, c, a); R(x, y - 1, 1, 3, c, a); }
+    function ang(d, a) { return d > 0 ? a : Math.PI - a; }
+    function crescent(cx, cy, rx, ry, a0, a1, p, col, edge) {   /* head first, the tail fades in three steps */
+      var n = Math.max(6, Math.round(Math.abs(a1 - a0) * Math.max(rx, ry))), head = Math.max(0, Math.min(1, p)) * n;
+      for (var i = 0; i <= n && i <= head; i++) {
+        var age = (head - i) / n, al = age < .12 ? 1 : age < .3 ? .65 : .35, an = a0 + (a1 - a0) * i / n, c = Math.cos(an), s = Math.sin(an);
+        R(cx + c * (rx + 1), cy + s * (ry + 1), 1, 1, edge, al);
+        R(cx + c * rx, cy + s * ry, 1, 1, col, al); R(cx + c * (rx - 1), cy + s * (ry - 1), 1, 1, col, al);
+      }
+    }
+    function ball(x, y, seam, al) {   /* small orange ball, 4 x 4 pixels */
+      R(x - 1, y - 2, 2, 1, '#ff8a2a', al); R(x - 2, y - 1, 4, 2, '#ff8a2a', al); R(x - 1, y + 1, 2, 1, '#ff8a2a', al);
+      if (seam === 1) R(x - 2, y, 4, 1, '#7a3a0a', al); else R(x - 1, y - 2, 1, 4, '#7a3a0a', al);
+    }
+    var ZZ = [[0, 0], [1, 0], [2, 0], [1, 1], [0, 2], [1, 2], [2, 2]];
+    function zz(x, y, k, a) { ZZ.forEach(function (p) { R(x + p[0] * k, y + p[1] * k, k, k, '#dfe6f5', a); }); }
+    var FONT = { p: [7, 5, 7, 4, 4], s: [3, 4, 2, 1, 6], t: [2, 7, 2, 2, 3] };
+    function bubble(x, y, text) {   /* x, y = top-left in canvas units */
+      var wd = text === '.' ? 8 : text.length * 4 - 1 + 4, dk = '#1b1f2a';
+      R(x - 1, y - 1, wd + 2, 11, dk); R(x, y, wd, 9, '#ffffff');
+      if (text === '.') { for (var d = 0; d < 3; d++) R(x + 1 + d * 2, y + 6, 1, 1, dk); return wd; }
+      for (var i = 0; i < text.length; i++) { var gl = FONT[text.charAt(i)]; for (var r = 0; r < 5; r++) for (var c = 0; c < 3; c++) if (gl[r] & (4 >> c)) R(x + 2 + i * 4 + c, y + 2 + r, 1, 1, dk); }
+      return wd;
+    }
+    function isDark() { return effTheme() === 'dark'; }
+    function puff(cx, cy, big) { fxList.push({ t: 0, life: big ? .55 : .4, cx: cx, cy: cy, big: big }); }
+    function drawPuff(p) {
+      var k = p.t / p.life, cols = isDark() ? ['#d3d8e3', '#a3abbb', '#d8ccb0'] : ['#9c9ca6', '#70717b', '#c4b08a'];
+      var al = k < .34 ? 1 : k < .67 ? .6 : .3, n = p.big ? 12 : 6, r = (p.big ? 13 : 7) * (.35 + k), sz = k < .5 ? 2 : 1, i, an;   /* chunky 2-px squares first, shrinking to 1 px as they fade */
+      for (i = 0; i < n; i++) { an = i / n * Math.PI * 2 + .4; R(p.cx + Math.cos(an) * r - sz / 2, p.cy - 1 + Math.sin(an) * r * .35 - k * 3, sz, sz, cols[i % 3], al); }
+      if (p.big) for (i = 0; i < 10; i++) { an = (i % 5) / 5 * Math.PI * 2 + (i < 5 ? .8 : 1.4); var rr = r * (i < 5 ? .6 : .85); R(p.cx + Math.cos(an) * rr, p.cy - 3 + Math.sin(an) * rr * .3 - k * 3, 1, 1, cols[0], al * .8); }
+    }
+    function addCracks(cx, cy) {
+      var base = [Math.PI * .88, Math.PI * .12, Math.PI * .5], out = [];
+      base.forEach(function (b) {
+        var an = b + rnd(-.25, .25), n = Math.round(rnd(16, 26) / S), pts = [], x = cx, y = cy;
+        for (var i = 0; i < n; i++) { x += Math.cos(an); y += Math.sin(an) * .45 + (Math.random() < .35 ? (Math.random() < .5 ? -1 : 1) : 0) * .6; pts.push([x, y]); }   /* jagged: random 1-pixel kinks */
+        out.push(pts);
+      });
+      cracks.push({ t: 0, lines: out });
+    }
+    function drawCracks(c) {
+      var grow = Math.min(1, c.t / .12), al = c.t < 1.02 ? 1 : Math.max(0, 1 - (c.t - 1.02) / .5), col = isDark() ? '#c8cde0' : '#14161f';
+      c.lines.forEach(function (pts) { var m = Math.ceil(pts.length * grow); for (var i = 0; i < m; i++) R(pts[i][0], pts[i][1], 1, 1, col, .6 * al); });
+    }
+    function drawParticles(dt) {
+      var i, p;
+      g = go;
+      for (i = fxList.length - 1; i >= 0; i--) { p = fxList[i]; p.t += dt; if (p.t >= p.life) fxList.splice(i, 1); else drawPuff(p); }
+      g = gu;
+      for (i = cracks.length - 1; i >= 0; i--) { p = cracks[i]; p.t += dt; if (p.t >= 1.52) cracks.splice(i, 1); else drawCracks(p); }
+      g = go;
+    }
+
+    /* ---------- frames: lazy-loaded per agent on first use, silent fallback when a file is missing ---------- */
+    function frameOK(w, n) { return !/^(act\d|sheathe)$/.test(n) || (ACTOK[w.key] || []).indexOf(n) >= 0; }
+    function getFrame(w, name) {
+      var f = w.fr[name]; if (f) return f;
+      f = w.fr[name] = { st: 0, img: null };
+      if (!frameOK(w, name)) { f.st = -1; return f; }   /* this agent has no such pose: never even request it */
+      var im = new Image(); im.className = 'wk-p' + (SIDEP[name] ? ' sd' : ''); im.alt = ''; im.draggable = false; f.img = im;
+      im.onload = function () { f.st = 1; im.style.height = (im.naturalHeight / 240 * 100) + '%'; w.pose.appendChild(im); if (w.view === name) applyView(w); };
+      im.onerror = function () { f.st = -1; if (w.view === name) applyView(w); };
+      im.src = 'assets/team/' + w.key + '-' + name + '.webp';
+      return f;
+    }
+    function showPoseImg(w, name) { var f = name && w.fr[name]; $$('.wk-p', w.pose).forEach(function (im) { im.classList.toggle('on', !!f && im === f.img); }); }
+    function applyView(w) {
+      var v = w.view, cl = w.el.classList;
+      if (!v || v === 'front') { cl.remove('posed', 'side', 'back'); showPoseImg(w, null); return; }
+      if (v === 'side') { cl.remove('posed', 'back'); cl.add('side'); showPoseImg(w, null); return; }
+      var f = getFrame(w, v);
+      if (f.st === 1) { cl.add('posed'); cl.remove('side', 'back'); showPoseImg(w, v); }
+      else if (f.st === -1) { showPoseImg(w, null); cl.remove('posed', 'back'); cl.toggle('side', !!SIDEP[v]); }   /* missing: side frames fall back to side2, the rest to front */
+    }
+    function setView(w, v) { if (w.view === v) return; w.view = v; applyView(w); }
+    function clearView(w) {
+      w.view = null; w.el.classList.remove('posed', 'side', 'back', 'mir', 'lifted'); showPoseImg(w, null);
+      bodyT(w, ''); w.body.style.transformOrigin = ''; w.sh.style.transform = ''; face(w, 0);
+    }
+    function bodyT(w, tr) { if (w.bt !== tr) { w.bt = tr; w.body.style.transform = tr; } }
+    function ensureBack(w) {   /* back1 / back2 load the first time that agent walks up the screen */
+      if (w.bk) return; w.bk = 2;
+      var n = 0, imgs = [$('.wk-b1', w.back), $('.wk-b2', w.back)];
+      imgs.forEach(function (im, i) {
+        im.onload = function () { if (++n === 2 && w.bk === 2) { w.back.style.height = (im.naturalHeight / 240 * 100) + '%'; w.bk = 1; } };
+        im.onerror = function () { w.bk = -1; };
+        im.src = 'assets/team/' + w.key + '-back' + (i + 1) + '.webp';
+      });
+    }
+    function walkView(w, dx, dy) {   /* sideways: profile. up the screen: back view. down: front */
+      var side = Math.abs(dx) > Math.abs(dy) * .7, up = !side && dy < 0, cl = w.el.classList;
+      if (up) ensureBack(w);
+      cl.toggle('side', side); cl.toggle('back', up && w.bk === 1);
+    }
+
+    /* ---------- planning ---------- */
+    function plan(w, mode) {   /* mode 'chat': go and talk to a free teammate; otherwise walk to a free spot */
+      w.friend = null; w.blocked = 0; w.via = null; w.detours = 0; w.pk = null;
       var pals = ws.filter(function (o) { return o !== w && free(o); });
-      if (pals.length && Math.random() < .7) {
+      if (mode === 'chat' && pals.length) {
         var f = pals[Math.floor(Math.random() * pals.length)], first = (w.x < f.x ? -1 : 1), ty = clampY(w, f.y), tx = null;
         [first, -first].forEach(function (side) {
           var x = f.x + side * GAP;
@@ -640,7 +767,7 @@
       } else spot(w);
       w.speed = rnd(32, 44); setState(w, 'walk');
     }
-    function release(w) { if (w.friend) { w.friend.host = null; if (w.friend.st === 'idle') w.friend.wait = rnd(.4, 1.5); w.friend = null; } }
+    function release(w) { if (w.friend) { w.friend.host = null; if (w.friend.st === 'idle') w.friend.wait = rnd(.4, 1.5); w.friend = null; } w.pk = null; }
     function blockedBy(w, dx, dy, d) {
       var ux = dx / d, uy = dy / d;
       for (var i = 0; i < ws.length; i++) {
@@ -650,81 +777,626 @@
       }
       return null;
     }
+
+    /* ---------- director: limits so the yard stays alive but never crowded ---------- */
+    function maxDo() { return phone() ? 4 : 5; }
+    function doing() { var n = 0; ws.forEach(function (w) { if (ACTST[w.st]) n++; else if (w.pk) n += 2; else if (w.gos) n++; }); return n; }
+    function pairsNow() { var n = 0; ws.forEach(function (w) { if (w.pk || (w.a && w.a.kind === 'pair' && w.a.lead === w)) n++; }); return n; }
+    function sigsNow() { var n = 0; ws.forEach(function (w) { if (w.st === 'sig') n++; }); return n; }
+    function dirTo(w) { return w.x + bw(w) / 2 < W() / 2 ? 1 : -1; }
+    function roomAhead(w, dir, dist) {   /* nobody inside `dist` px in front of w (and a little behind) */
+      return !ws.some(function (o) {
+        if (o === w || (w.a && w.a.who && w.a.who.indexOf(o) >= 0)) return false;
+        var dx = (o.x - w.x) * dir; return Math.abs(o.y - w.y) < SY && dx > -SX * .5 && dx < dist;
+      });
+    }
+    function sigOK(w) {
+      var now = performance.now();
+      if (sigsNow() >= (phone() ? 1 : 2) || now - sigAt < sigGap * 1000 || now - w.lastSig < K.sigCool * 1000 || doing() >= maxDo()) return false;
+      return roomAhead(w, dirTo(w), .9 * w.bH);
+    }
+    function decide(w) {   /* an idle wait ran out: roll what to do next (weights from the plan) */
+      var pool = [['walk', 30], ['chat', 15], ['solo', 32], ['pair', 15], ['sig', 8]];
+      while (pool.length) {
+        var sum = 0; pool.forEach(function (p) { sum += p[1]; });
+        var r = Math.random() * sum, i = 0; while (i < pool.length - 1 && r >= pool[i][1]) { r -= pool[i][1]; i++; }
+        var kind = pool.splice(i, 1)[0][0];
+        if (kind === 'walk') { plan(w, 'walk'); return; }
+        if (kind === 'chat') { plan(w, 'chat'); return; }
+        if (kind === 'solo' && trySolo(w)) return;
+        if (kind === 'pair' && tryPairAny(w)) return;
+        if (kind === 'sig' && sigOK(w)) { startSig(w); return; }
+      }
+      plan(w, 'walk');
+    }
+
+    /* ---------- solo activities ---------- */
+    function alt(a, b, ms) { return function (t) { return Math.floor(t / ms) % 2 ? b : a; }; }
+    function one(n) { return function () { return n; }; }
+    function bobTf(px, ms) { return function (w, a, t) { return Math.floor(t / ms) % 2 ? 'translateY(' + (-px) + 'px)' : ''; }; }
+    var ACT = {
+      type:    { d: [5, 9], p: one('desk'), tf: bobTf(2, 140) },
+      phone:   { d: [4, 7], p: one('phone'), mir: true },
+      read:    { d: [5, 8], p: one('read'), fx: function (w, a, t, o) { if (t % 2000 < 130 && t > 1000) { R(o.x - 2, o.y - o.u * .5, 3, 1, '#ffffff'); R(o.x - 1, o.y - o.u * .5 - 1, 1, 1, '#ffffff', .7); } } },
+      notes:   { d: [4, 6], p: one('desk'), fx: function (w, a, t, o) { var k = Math.floor(t / 110) % 2; R(o.x + 6, o.y - o.u * .34 + k, 1, 1, '#f5c542'); R(o.x + 7, o.y - o.u * .34 + k + 1, 1, 1, '#f5c542'); R(o.x + 8, o.y - o.u * .34 + k + 2, 1, 1, '#2b2f3b'); } },
+      coffee:  { d: [4, 6], p: one('coffee'), fx: function (w, a, t, o) { for (var i = 0; i < 3; i++) { var k = ((t + i * 300) % 900) / 900; R(o.x + (i - 1) * 2 + (Math.floor(k * 4) % 2), o.y - o.u * .58 - k * 7, 1, 1, '#eef1f8', 1 - k); } } },
+      sit:     { d: [5, 9], p: one('sit') },
+      stretch: { d: [2.5, 4], p: alt('stretch', 'front', 600) },
+      nap:     { d: [7, 11], p: one('nap'), fx: function (w, a, t, o) { [0, 800].forEach(function (off) { var k = ((t + off) % 1600) / 1600; zz(o.x + 3 + k * 7, o.y - o.u * .58 - k * 12, k < .5 ? 1 : 2, k > .8 ? .4 : 1); }); } },
+      rope:    { d: [3, 5], p: one('stretch'),
+        tf: function (w, a, t) { return 'translateY(' + (-Math.sin(Math.PI * ((t % 450) / 450)) * 4).toFixed(1) + 'px)'; },
+        fx: function (w, a, t, o) {
+          var hop = Math.sin(Math.PI * ((t % 450) / 450)) * 4 / S, over = Math.floor(t / 225) % 2 === 0;
+          if (over) arcPx(o.x, o.y - o.u * .5 - hop, o.u * .36, o.u * .55, Math.PI, Math.PI * 2, '#b07a3a'); else arcPx(o.x, o.y - 2, o.u * .36, o.u * .16, 0, Math.PI, '#b07a3a');
+        } },
+      dance:   { d: [3, 5], p: alt('cheer', 'dance', 350), tf: function (w, a, t) { return Math.floor(t / 350) % 2 ? 'translateX(1px)' : 'translateX(-1px)'; } },
+      wave:    { d: [1.8, 2.6], p: one('wave'), needPtr: true },
+      cheer:   { d: [1.5, 1.5], p: one('cheer'), quiet: true }
+    };
+    var SOLO = ['type', 'phone', 'read', 'notes', 'coffee', 'sit', 'stretch', 'nap', 'rope', 'dance', 'wave'];
+    function org(w, dir) { return { x: (w.x + bw(w) / 2) / S, y: (w.y + w.bH) / S, u: w.bH / S, d: dir, ph: phone() }; }
+    function trySolo(w) {
+      if (doing() >= maxDo()) return false;
+      var okp = performance.now() - lastPtr < K.waveWindow;
+      var list = SOLO.filter(function (n) { return n !== w.lastAct && (n !== 'wave' || okp); });
+      if (!roomAhead(w, dirTo(w), GAP)) return false;
+      startSolo(w, list[Math.floor(Math.random() * list.length)]); return true;
+    }
+    function startSolo(w, name) {
+      var d = ACT[name]; if (!d.quiet) w.lastAct = name;
+      w.a = { kind: 'solo', name: name, t: 0, dur: rnd(d.d[0], d.d[1]) * 1000, who: [w], dir: dirTo(w) };
+      setState(w, 'act');
+    }
+    function updSolo(w, dt) {
+      var a = w.a, d = ACT[a.name], t = a.t, o = org(w, a.dir);
+      setView(w, d.p(t, a));
+      w.el.classList.toggle('mir', !!d.mir && t > a.dur / 2);
+      bodyT(w, d.tf ? d.tf(w, a, t) : '');
+      if (d.fx) d.fx(w, a, t, o);
+      return t >= a.dur;
+    }
+
+    /* ---------- pair activities: ball toss, cards, high-five ---------- */
+    function rowClear(w, f, x1, x2, y) {
+      var lo = Math.min(x1, x2) - SX * .5, hi = Math.max(x1, x2) + SX * .5;
+      return !ws.some(function (o) { return o !== w && o !== f && Math.abs(o.y - y) < SY && o.x > lo && o.x < hi; });
+    }
+    function tryPair(w, kind) {
+      var D = (kind === 'ball' ? (phone() ? 1.8 : 2.5) : kind === 'cards' ? 1.2 : 2) * GAP;
+      var pals = ws.filter(function (o) { return o !== w && free(o) && Math.hypot(o.x - w.x, o.y - w.y) < 3 * GAP; })
+        .sort(function (a, b) { return Math.hypot(a.x - w.x, a.y - w.y) - Math.hypot(b.x - w.x, b.y - w.y); });
+      for (var i = 0; i < pals.length; i++) {
+        var f = pals[i], first = (w.x < f.x ? -1 : 1), ty = clampY(w, f.y);
+        for (var s = 0; s < 2; s++) {
+          var x = f.x + (s ? -first : first) * D;
+          if (x >= 0 && x <= W() - bw(w) && !taken(w, x, ty, f) && rowClear(w, f, x, f.x, ty)) {
+            w.friend = f; f.host = w; f.wait = 99; w.pk = kind; w.tx = x; w.ty = ty; w.blocked = 0; w.via = null; w.detours = 0; w.speed = rnd(32, 44); setState(w, 'walk'); return true;
+          }
+        }
+      }
+      return false;
+    }
+    function tryPairAny(w) {
+      if (pairsNow() >= (phone() ? 1 : 2) || doing() + 2 > maxDo()) return false;
+      var kinds = ['ball', 'cards', 'hifive'].sort(function () { return Math.random() - .5; });
+      for (var i = 0; i < kinds.length; i++) if (tryPair(w, kinds[i])) return true;
+      return false;
+    }
+    function startPair(w, f) {
+      var kind = w.pk, pa = { kind: 'pair', sub: kind, t: 0, ph: 0, t0: 0, lead: w, who: [w, f], a: w, b: f, dur: kind === 'ball' ? rnd(5, 8) * 1000 : kind === 'cards' ? rnd(6, 10) * 1000 : 1e9 };
+      w.pk = null; w.friend = null; f.host = null; f.friend = null; w.a = f.a = pa;
+      setState(w, 'pair'); setState(f, 'pair'); face(w, f.x - w.x); face(f, w.x - f.x);
+    }
+    function hand(w) { return { x: (w.x + bw(w) / 2 + (w.fd || 1) * bw(w) * .33) / S, y: (w.y + w.bH * .3) / S }; }
+    function updPair(pa, dt) {
+      var a = pa.a, b = pa.b, t = pa.t, i;
+      if (pa.sub === 'ball') {
+        var n = Math.floor(t / 700), q = (t % 700) / 700, th = n % 2 ? b : a, rc = th === a ? b : a, h1 = hand(th), h2 = hand(rc);
+        setView(th, q < .38 ? 'throw' : 'side'); setView(rc, 'side');
+        ball(h1.x + (h2.x - h1.x) * q, h1.y + (h2.y - h1.y) * q - 4 * q * (1 - q) * a.bH * .55 / S, 0);
+        return t >= pa.dur;
+      }
+      if (pa.sub === 'cards') {
+        setView(a, 'sit'); setView(b, 'sit');
+        var mx = ((a.x + b.x) / 2 + bw(a) / 2) / S, my = (a.y + a.bH) / S - 1, fl = Math.floor(t / 1500);
+        for (i = 0; i < 3; i++) {
+          var flips = 0; for (var k = 0; k <= fl; k++) if (k % 3 === i && k > 0) flips++;
+          var up = flips % 2 === 0, cx = mx - 7 + i * 7;
+          R(cx - 3, my - 7, 6, 8, '#1b1f2a'); R(cx - 2, my - 6, 4, 6, up ? '#f7f4ea' : '#4a78d6'); if (up) R(cx - 1, my - 4, 1, 2, '#d33a3a');
+        }
+        return t >= pa.dur;
+      }
+      /* high-five: walk toward each other, slap, cheer */
+      var dx = b.x - a.x, dirA = dx > 0 ? 1 : -1;
+      if (pa.ph === 0) {
+        setView(a, 'side'); setView(b, 'side'); a.el.classList.add('walking'); b.el.classList.add('walking');
+        if (Math.abs(dx) > GAP * .85) { a.x += dirA * 40 * dt; b.x -= dirA * 40 * dt; place(a); place(b); }
+        else { pa.ph = 1; pa.t0 = t; a.el.classList.remove('walking'); b.el.classList.remove('walking'); }
+      } else if (pa.ph === 1) {
+        var k1 = t - pa.t0; setView(a, 'throw'); setView(b, 'throw');
+        if (k1 > 150 && k1 < 380) { var mxx = ((a.x + b.x) / 2 + bw(a) / 2) / S, myy = (a.y + a.bH * .3) / S; plus(mxx, myy, '#ffffff'); R(mxx - 2, myy - 2, 1, 1, '#ffffff'); R(mxx + 2, myy - 2, 1, 1, '#ffffff'); R(mxx - 2, myy + 2, 1, 1, '#ffffff'); R(mxx + 2, myy + 2, 1, 1, '#ffffff'); }
+        if (k1 >= 500) { pa.ph = 2; pa.t0 = t; }
+      } else { setView(a, 'cheer'); setView(b, 'cheer'); if (t - pa.t0 >= 800) return true; }
+      return false;
+    }
+
+    /* ---------- signature moves: poses where frames exist, code effects for all nine ---------- */
+    function ease(p) { p = Math.max(0, Math.min(1, p)); return p * p * (3 - 2 * p); }
+    function levHop(w, t, o) { var h = (o.ph ? .2 : .35) * w.bH, p = (t - 250) / 850, v = p > 0 && p < 1 ? h * 4 * p * (1 - p) : 0; return Math.min(v, w.y); }
+    function kenSlide(w, t, o) { if (o.ph) return 0; var m = .4 * w.bH; return t < 450 ? 0 : t < 700 ? m * ease((t - 450) / 250) : t < 950 ? m : t < 1350 ? m * (1 - (t - 950) / 400) : 0; }
+    var DOODLE = (function () { var p = [[0, 0], [3, -3], [6, 1], [9, -3], [12, 1], [15, -2]]; for (var i = 1; i <= 10; i++) { var a = i / 10 * Math.PI * 2; p.push([15 + Math.sin(a) * 3, -2 - 3 + Math.cos(a) * 3]); } return p; })();
+    var SIG = {
+      levi: { ms: 1500,
+        pose: function (t) { return t < 250 ? 'act1' : t < 700 ? 'act2' : t < 1100 ? 'act3' : 'act1'; },
+        tf: function (w, t, o) { var h = levHop(w, t, o); return h ? 'translateY(' + (-h).toFixed(1) + 'px)' : ''; },
+        fx: function (w, t, o) {
+          var hu = levHop(w, t, o) / S, d = o.d, u = o.u;
+          if (!o.ph && t > 150 && t < 900) line(o.x + d * 2, o.y - u * .65 - hu, o.x + d * u * .85, o.y - u * 1.55, '#9aa3b2', .9);
+          if (t >= 400 && t <= 650) crescent(o.x + d * 2, o.y - u * .55 - hu, u * .55, u * .55, ang(d, -1.1), ang(d, 1.0), (t - 400) / 250, '#ffffff', '#1b1f2a');
+          if (!o.ph && t >= 700 && t <= 950) crescent(o.x - d * 2, o.y - u * .55 - hu, u * .55, u * .55, ang(d, 4.1), ang(d, 2.2), (t - 700) / 250, '#ffffff', '#1b1f2a');
+          if (t >= 1100 && t < 1300) { var k = (t - 1100) / 200; for (var i = 0; i < 3; i++) R(o.x - 3 + i * 3, o.y - 1 - k * 2, 1, 1, '#b9b9c0', 1 - k); }
+        } },
+      kenshin: { ms: 1350,
+        pose: function (t) { return t < 450 ? 'act1' : t < 950 ? 'act2' : 'sheathe'; },
+        tf: function (w, t, o) { var s = kenSlide(w, t, o); return s ? 'translateX(' + (o.d * s).toFixed(1) + 'px)' : ''; },
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, su = kenSlide(w, t, o) / S;
+          if (t > 100 && t < 450 && Math.floor(t / 90) % 2) plus(o.x - d * 3, o.y - u * .35, '#ffffff');
+          if (t >= 450 && t <= 620) crescent(o.x + d * (u * .15 + su), o.y - u * .45, u * .7, u * .7, ang(d, -.9), ang(d, .7), (t - 450) / 170, '#ffffff', '#8a93a3');
+        } },
+      senku: { ms: 1500,
+        pose: function (t) { return t < 350 ? 'act1' : t < 600 ? 'act2' : t < 850 ? 'act1' : 'act2'; },
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, fx0 = o.x + d * u * .3, fy0 = o.y - u * 1.0, i, k;
+          R(fx0 - 1, fy0 - 1, 3, 3, t < 650 ? '#4ade80' : t < 950 ? '#a3d34a' : '#f5c542');
+          if (t > 300 && t < 1300) for (i = 0; i < (o.ph ? 3 : 5); i++) { k = (((t - 300 - i * 150) % 700) + 700) % 700 / 700; R(fx0 - 2 + (i * 7) % 5, fy0 - 2 - k * u * .45, 1, 1, '#bdf7d3', 1 - k * .7); }
+          if (!o.ph && t >= 900 && t < 1250) { k = (t - 900) / 350; for (i = 0; i < 5; i++) R(fx0 + Math.cos(i * 1.26) * (1 + k * 3), fy0 - 4 - k * 3 + Math.sin(i * 1.26) * (1 + k * 2), 2, 2, '#d6dae2', 1 - k); }
+        } },
+      erina: { ms: 1400,
+        pose: function (t) { return t < 400 ? 'act1' : t < 1100 ? 'act2' : 'act1'; },
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, n = o.ph ? 2 : 4, i;
+          if (t > 120 && t < 300) plus(o.x + d * u * .32, o.y - u * .4, '#ffffff');
+          if (t >= 400 && t < 1300) for (i = 0; i < n; i++) { var an = i * Math.PI * 2 / n + t * .004, x = o.x + Math.cos(an) * u * .42, y = o.y - u * .78 + Math.sin(an) * u * .2; if ((Math.floor(t / 110) + i) % 2) plus(x, y, '#ffd54a'); else R(x, y, 1, 1, '#ffd54a'); }
+        } },
+      rohan: { ms: 1700,
+        pose: function (t) { return t < 800 ? (Math.floor(t / 150) % 2 ? 'act2' : 'act1') : t < 1200 ? 'act2' : 'act1'; },
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, k = u / 28, x0 = o.x + d * u * .3, y0 = o.y - u * .95, N = DOODLE.length, p = Math.max(0, Math.min(1, (t - 100) / 900)), m = Math.floor(p * (N - 1)), i, e;
+          function pt(j) { return [x0 + d * DOODLE[j][0] * k, y0 + DOODLE[j][1] * k]; }
+          for (i = 0; i < m; i++) { var a = pt(i), b = pt(i + 1); line(a[0], a[1] + 1, b[0], b[1] + 1, '#1b1f2a', .7); }
+          for (i = 0; i < m; i++) { var a2 = pt(i), b2 = pt(i + 1); line(a2[0], a2[1], b2[0], b2[1], '#ffffff'); }
+          if (t >= 1000 && t < 1700) { var ag = (t - 1000) / 700; e = pt(N - 1);
+            for (i = 0; i < (o.ph ? 2 : 4); i++) { var px = e[0] + d * (3 + i * 4) * ag, py = e[1] - 2 + ag * ag * u * .8 + i; R(px - 1, py - 1, 6, 7, '#1b1f2a', 1 - ag * .5); R(px, py, 4, 5, '#f4f1e8', 1 - ag * .5); } }
+        } },
+      nami: { ms: 1700, pose: one('side'),
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, hx = o.x + d * u * .15, hy = o.y - u * .5, up = [o.x + d * u * .25, o.y - u * 1.2], fw = [o.x + d * u * .65, o.y - u * .9], tip, i, q;
+          if (t < 300) { q = ease(t / 300); tip = [hx + (up[0] - hx) * q, hy + (up[1] - hy) * q]; }
+          else if (t < 500) { q = ease((t - 300) / 200); tip = [up[0] + (fw[0] - up[0]) * q, up[1] + (fw[1] - up[1]) * q]; }
+          else if (t < 1400) tip = fw; else { q = ease((t - 1400) / 300); tip = [fw[0] + (hx - fw[0]) * q, fw[1] + (hy - fw[1]) * q]; }
+          line(hx, hy + 1, tip[0], tip[1] + 1, '#1b1f2a', .6);
+          for (i = 0; i < 3; i++) line(hx + (tip[0] - hx) * i / 3, hy + (tip[1] - hy) * i / 3, hx + (tip[0] - hx) * (i + 1) / 3, hy + (tip[1] - hy) * (i + 1) / 3, i % 2 ? '#7a4a16' : '#d8932a');
+          if (t >= 450 && t < 1500) {
+            var cx = Math.round(tip[0] + d * u * .05), cy = Math.max(6, Math.round(tip[1] - u * .38)), v = Math.floor(t / 150) % 2, rows = v ? [[-3, -2, 7], [-6, 0, 12], [-6, 2, 12]] : [[-4, -2, 9], [-6, 0, 13], [-5, 2, 11]];
+            rows.forEach(function (r, ri) { R(cx + r[0] - 1, cy + r[1] - 1, r[2] + 2, 3, '#1b1f2a', .55); }); rows.forEach(function (r, ri) { R(cx + r[0], cy + r[1], r[2], 2, ri === 0 ? '#aab2c0' : '#8f98a8'); });
+            for (i = 0; i < (o.ph ? 4 : 8); i++) R(cx - 5 + (i * 13) % 11, cy + 5 + (t * .03 + i * 4) % 14, 1, 2, '#6ab4ff');
+            if (t >= 800 && t < 1000) { var bp = [[2, 4], [0, 7], [3, 9], [0, 12], [2, 15]], j; for (j = 0; j < bp.length - 1; j++) line(cx + d * bp[j][0] + 1, cy + bp[j][1], cx + d * bp[j + 1][0] + 1, cy + bp[j + 1][1], '#1b1f2a'); for (j = 0; j < bp.length - 1; j++) line(cx + d * bp[j][0], cy + bp[j][1], cx + d * bp[j + 1][0], cy + bp[j + 1][1], '#ffe14a'); }
+          }
+        } },
+      kuroko: { ms: 1700, pose: one('side'), walk: function (t) { return t < 600; },
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, hx = o.x + d * u * .32, hy = o.y - u * .4, gy = o.y - 2, bx, by, seam = Math.floor(t / 100) % 2, i, q;
+          var bn = o.ph ? 300 : 600;
+          if (t < bn) { bx = hx; by = gy - (gy - hy) * Math.abs(Math.cos(Math.PI * t / 300)); ball(bx, by, seam, 1); }
+          else if (t < 1000) { ball(o.x + d * u * .3, o.y - u * .95, seam, 1); }
+          else if (t < 1250) { q = (t - 1000) / 250; var sx = o.x + d * u * .3, sy = o.y - u * .95;
+            for (i = 3; i >= 1; i--) { var qq = Math.max(0, q - i * .12); ball(sx + d * u * .9 * qq, sy - qq * 2, seam, .5 / i); }
+            ball(sx + d * u * .9 * q, sy - q * 2, seam, 1 - q * q * q); }
+          else if (t >= 1500) { if (t < 1600) plus(hx, hy, '#ffffff'); ball(hx, hy, 0, 1); }
+        } },
+      raphael: { ms: 1500, pose: one('front'),
+        tf: function (w, t) { return Math.floor(t / 150) % 2 ? 'translateY(-2px)' : ''; },
+        fx: function (w, t, o) {
+          var u = o.u, lv = t < 500 ? .5 : t < 1000 ? .75 : 1, i, an;
+          if (t < 1400) { var cy = o.y - u * .12 - u * .8 * Math.min(1, t / 1000);
+            [0, 3, 6].forEach(function (off, ri) { for (var j = 0; j < 18; j += 2) { var a2 = j / 18 * Math.PI * 2 + t * .003; R(o.x + Math.cos(a2) * u * .34, cy + off + Math.sin(a2) * u * .09, 1, 1, '#4fd8ff', lv * (ri ? ri === 1 ? .4 : .2 : 1)); } }); }
+          if (t > 300 && t < 1400) for (i = 0; i < (o.ph ? 3 : 6); i++) { an = t * .005 + i * (Math.PI * 2 / (o.ph ? 3 : 6)); R(o.x + Math.cos(an) * u * .42, o.y - u * .55 + Math.sin(an) * u * .1, 1, 1, '#bff3ff'); }
+          if (t > 1000 && t < 1250) plus(o.x + 2, o.y - u * .78, '#ffffff');
+        } },
+      jarvis: { ms: 1600, pose: one('side'),
+        fx: function (w, t, o) {
+          var d = o.d, u = o.u, fd = t > 1400 ? (1600 - t) / 200 : 1, pw = Math.round(u * .6), x0 = o.x + d * u * .38, y1 = Math.round(o.y - u), y2 = Math.round(o.y - u * .42), ph = y2 - y1, i;
+          var wc = Math.round(pw * ease((t - 100) / 300)); if (wc < 2) return;
+          var xm = d > 0 ? x0 : x0 - wc;
+          R(xm, y1, wc, ph, '#46d2ff', .16 * fd); R(xm, y1, wc, 1, '#46d2ff', .8 * fd); R(xm, y2, wc, 1, '#46d2ff', .8 * fd); R(xm, y1, 1, ph, '#46d2ff', .8 * fd); R(xm + wc - 1, y1, 1, ph, '#46d2ff', .8 * fd);
+          for (i = 0; i < 3; i++) { var bh2 = Math.round((ph - 5) * ease((t - 500 - i * 120) / 500) * (.5 + i * .25)); if (bh2 > 0) R(xm + 2 + i * 5, y2 - 2 - bh2, 3, bh2, '#8be9ff', .9 * fd); }
+          if (t > 300 && t < 800) line(o.x + d * 2, o.y - u * .86, xm, o.y - u * .86, '#46d2ff', .6 * fd);
+          if (t > 700 && t < 1400) R(xm, y1 + (t - 700) / 700 * ph, wc, 1, '#ffffff', .5 * fd);
+          if (!o.ph) for (i = 0; i < 4; i++) { var r0 = t * .006 + i * Math.PI / 2; arcPx(xm + wc / 2, y1 - 6, 4, 4, r0, r0 + 1, '#46d2ff', .8 * fd); }
+        } }
+    };
+    function startSig(w) {
+      var dir = dirTo(w); w.a = { kind: 'sig', t: 0, who: [w], dir: dir };
+      setState(w, 'sig'); face(w, dir); sigAt = performance.now(); sigGap = rnd(K.sigGap[0], K.sigGap[1]); w.lastSig = sigAt;
+      JoeCam.react(w.id);
+    }
+    function updSig(w) {
+      var a = w.a, d = SIG[w.id] || SIG.raphael, t = a.t, o = org(w, a.dir);
+      setView(w, d.pose(t));
+      w.el.classList.toggle('walking', !!(d.walk && d.walk(t)));
+      bodyT(w, d.tf ? d.tf(w, t, o) : '');
+      d.fx(w, t, o);
+      if (t >= d.ms) { cheerAround(w); return true; }
+      return false;
+    }
+    function cheerAround(w) {   /* one or two free neighbours cheer when a signature move ends */
+      var n = 0;
+      ws.forEach(function (o) { if (n < 2 && o !== w && free(o) && Math.hypot(o.x - w.x, o.y - w.y) < 3 * GAP && doing() < maxDo()) { startSolo(o, 'cheer'); n++; } });
+    }
+
+    /* ---------- gossip with Joe ---------- */
+    function startGossip() {
+      if (drag || JoeCam.busy() || ws.some(function (o) { return o.st === 'held' || o.st === 'fall' || o.st === 'land' || o.gos; })) return false;
+      var cands = ws.filter(free); if (!cands.length || doing() >= maxDo()) return false;
+      var w = cands[Math.floor(Math.random() * cands.length)], pr = JoeCam.rect(); if (!pr) return false;
+      var br = box.getBoundingClientRect(), pcx = pr.left + pr.width / 2 - br.left, wc = w.x + bw(w) / 2, side = wc < pcx ? 'left' : 'right', i, tx = 0, ok = false;
+      for (i = 0; i < 2 && !ok; i++) {
+        var sd = i ? (side === 'left' ? 'right' : 'left') : side;
+        tx = clampX(w, pcx + (sd === 'left' ? -1 : 1) * (pr.width / 2 + bw(w) * .15) - bw(w) / 2);
+        if (!taken(w, tx, 4)) { ok = true; side = sd; }
+      }
+      if (!ok) return false;
+      w.friend = null; w.blocked = 0; w.via = null; w.detours = 0; w.pk = null; w.tx = tx; w.ty = 4; w.speed = 46; w.gos = { side: side, t: 0 }; setState(w, 'walk');
+      return true;
+    }
+    function beginWhisper(w) {
+      var side = w.gos.side; w.gos = null; w.a = { kind: 'gossip', t: 0, ph: 0, who: [w], side: side };
+      setState(w, 'gossip'); face(w, side === 'left' ? 1 : -1); JoeCam.scene(side === 'left' ? 'listen-sl' : 'listen-sr', 2300);
+    }
+    function updGossip(w) {
+      var a = w.a, t = a.t;
+      if (t < 3800) {
+        setView(w, 'whisper');
+        var hx = (w.x + bw(w) / 2) / S, hy = Math.max(1, (w.y + w.bH * .08) / S), cw = co.width, txt = t < 1100 ? 'psst' : '.', wd = txt === '.' ? 8 : 19;
+        var bx = a.side === 'left' ? hx - 12 - wd : hx + 12; if (bx < 2 || bx + wd > cw - 2) bx = a.side === 'left' ? hx + 12 : hx - 12 - wd;
+        bubble(Math.max(2, Math.min(cw - wd - 2, bx)), hy, txt);
+        if (a.ph === 0 && t >= 2200) { a.ph = 1; JoeCam.scene('surprised', 1700); }
+      } else {
+        setView(w, 'laugh'); bodyT(w, Math.floor(t / 120) % 2 ? 'translateY(-2px)' : '');
+        if (a.ph === 1) { a.ph = 2; JoeCam.scene('laugh', 2100); }
+      }
+      return t >= 5800;
+    }
+
+    /* ---------- finishing, interrupting ---------- */
+    function stopAct(w) {
+      var a = w.a; if (!a) return;
+      (a.who || [w]).forEach(function (p) { p.a = null; clearView(p); setState(p, 'idle'); p.wait = rnd(1, 3); place(p); });
+    }
+    function interrupt(w) {   /* picked up: end whatever it was doing, and whoever it was doing it with */
+      if (w.a) { if (w.a.kind === 'gossip') JoeCam.release(); stopAct(w); }
+      if (w.st === 'chat') { var f = w.friend; release(w); if (f && f.st === 'chat') { f.friend = null; setState(f, 'idle'); f.wait = rnd(1.2, 2.6); } }
+      else release(w);
+      if (w.host) { var h = w.host; w.host = null; if (h.friend === w) { h.friend = null; h.pk = null; if (h.st === 'walk') spot(h); } }
+      w.gos = null;
+    }
+    function dropNow(w) {
+      w.z = 0; w.vx = w.vy = w.vz = 0; w.bounced = false; clearView(w); setState(w, 'idle'); w.x = clampX(w, w.x); w.y = clampY(w, w.y); w.wait = rnd(.8, 2); place(w);
+    }
+
+    /* ---------- pick up, carry, drop ---------- */
+    function local(e) { var rc = box.getBoundingClientRect(); return { x: e.clientX - rc.left, y: e.clientY - rc.top }; }
+    function wOf(el) { for (var i = 0; i < ws.length; i++) if (ws[i].el === el) return ws[i]; return null; }
+    function onDown(e) {
+      if ((e.button != null && e.button > 0) || drag || box.closest('.org-on')) return;
+      var el = e.target.closest('.walker'); if (!el) return;
+      var w = wOf(el); if (!w || w.st === 'fall' || w.st === 'land') return;
+      var p = local(e); drag = { w: w, id: e.pointerId, sx: p.x, sy: p.y, px: p.x, py: p.y, on: false, hist: [] };
+      try { el.setPointerCapture(e.pointerId); } catch (er) {}
+    }
+    function onMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var p = local(e), now = performance.now();
+      if (!drag.on) { if (Math.hypot(p.x - drag.sx, p.y - drag.sy) < 6) return; startCarry(drag.w); drag.on = true; }
+      drag.px = p.x; drag.py = p.y; drag.hist.push({ x: p.x, y: p.y, t: now });
+      while (drag.hist.length > 2 && now - drag.hist[0].t > 100) drag.hist.shift();
+      if (reduced() || !raf) placeHeld(drag.w);   /* no loop running (reduced motion): follow the pointer directly, no sway */
+    }
+    function onUp(e) {
+      if (!drag || (e && e.type !== 'lostpointercapture' && e.pointerId !== drag.id)) return;
+      var d = drag; drag = null;
+      if (!d.on) return;   /* a tap: the click opens the modal, as before */
+      swallow = performance.now() + 400; endCarry(d);
+    }
+    function onClickCap(e) {
+      var el = e.target.closest && e.target.closest('.walker'), w = el && wOf(el);
+      if (performance.now() < swallow || (w && (w.st === 'fall' || w.st === 'land' || w.st === 'held'))) { e.stopPropagation(); e.preventDefault(); }
+    }
+    function startCarry(w) {
+      interrupt(w); setState(w, 'held'); w.el.classList.add('lifted');
+      w.z = K.lift * w.bH; w.th = 0; w.om = 0; w.phx = null; w.pvx = 0; w.acc = []; w.bounced = false;
+      setView(w, 'held'); w.body.style.transformOrigin = '50% 6%'; w.sh.style.transform = 'scale(.6)'; w.bt = '';
+      placeHeld(w);
+    }
+    function placeHeld(w) {
+      var nx = drag.px - bw(w) / 2, ny = drag.py - .06 * w.bH + w.z;   /* the hand (50 % across, 6 % down the sprite) sits under the pointer */
+      w.x = clampX(w, nx); w.y = Math.max(w.z, clampY(w, ny)); place(w);
+      if (reduced()) bodyT(w, 'translateY(' + (-w.z).toFixed(1) + 'px)');
+    }
+    function heldStep(w, dt) {
+      if (!drag || drag.w !== w) return;
+      placeHeld(w);
+      var hx = w.x + bw(w) / 2, v = w.phx == null ? 0 : (hx - w.phx) / dt, a = (v - w.pvx) / dt;
+      w.phx = hx; w.pvx = v; w.acc.push(a); if (w.acc.length > 3) w.acc.shift();
+      var ax = w.acc.reduce(function (s, x) { return s + x; }, 0) / w.acc.length;
+      w.om += (-K.sway * w.th - K.damp * w.om + ax / w.bH) * dt; w.th += w.om * dt;   /* pendulum about the hand; pointer accelerating right swings the body left */
+      if (w.th > K.maxAng) { w.th = K.maxAng; w.om = 0; } else if (w.th < -K.maxAng) { w.th = -K.maxAng; w.om = 0; }
+      bodyT(w, 'translateY(' + (-w.z).toFixed(1) + 'px) rotate(' + w.th.toFixed(3) + 'rad)');
+      w.el.style.setProperty('--dg', Math.max(.25, 1.1 - Math.abs(v) / 1500).toFixed(2) + 's');
+      asideT -= dt; if (asideT <= 0) { asideT = .3; stepAside(w); }
+    }
+    function stepAside(h) {   /* others step out of the way of the one being carried */
+      ws.forEach(function (o) {
+        if (o !== h && free(o) && Math.abs(o.x - h.x) < SX * .8 && Math.abs(o.y - h.y) < SY * .8) { spot(o); if (o.tx !== o.x || o.ty !== o.y) { o.speed = rnd(40, 52); setState(o, 'walk'); } }
+      });
+    }
+    function endCarry(d) {
+      var w = d.w, h = d.hist, vx = 0, vy = 0, now = performance.now();
+      if (h.length > 1 && now - h[h.length - 1].t < 120) { var f = h[0], l = h[h.length - 1], dt = Math.max(16, l.t - f.t) / 1000; vx = (l.x - f.x) / dt; vy = (l.y - f.y) / dt; }
+      var sp = Math.hypot(vx, vy); if (sp > K.maxV) { vx *= K.maxV / sp; vy *= K.maxV / sp; }
+      if (reduced() || !raf) { dropNow(w); return; }   /* reduced motion: put down at once, no dust, no cracks */
+      w.vx = vx; w.vy = vy; w.vz = vy < 0 ? Math.min(K.toss, -vy * .8) : 0; w.zf = w.z; w.fallT = 0;
+      setState(w, 'fall');
+    }
+    function fallStep(w, dt) {
+      var fr = Math.exp(-K.fric * dt);
+      if (w.st === 'land') { landStep(w, dt); return; }
+      w.vx *= fr; w.vy *= fr; w.x = clampX(w, w.x + w.vx * dt); w.y = clampY(w, w.y + w.vy * dt);
+      w.vz -= K.grav * dt; w.z += w.vz * dt; w.om += (-K.sway * w.th - K.damp * w.om) * dt; w.th += w.om * dt;
+      if (w.th > K.maxAng) { w.th = K.maxAng; w.om = 0; } else if (w.th < -K.maxAng) { w.th = -K.maxAng; w.om = 0; }
+      if (w.z > 0) {
+        bodyT(w, 'translateY(' + (-w.z).toFixed(1) + 'px) rotate(' + w.th.toFixed(3) + 'rad)');
+        w.sh.style.transform = 'scale(' + (.6 + .4 * Math.max(0, 1 - w.z / Math.max(1, w.zf))).toFixed(2) + ')'; place(w); return;
+      }
+      land(w, -w.vz);
+    }
+    function land(w, v) {
+      w.z = 0; w.th = 0; w.om = 0; w.body.style.transformOrigin = '50% 100%'; w.sh.style.transform = '';
+      var cx = (w.x + bw(w) / 2) / S, cy = (w.y + w.bH) / S;
+      setView(w, 'front'); setState(w, 'land');
+      if (w.bounced) {   /* second touch-down after a hard landing: dust, cracks, shake it off */
+        puff(cx, cy, true); addCracks(cx, cy); JoeCam.facepalm(); w.lp = { ph: 'shake', t: 0 }; bodyT(w, ''); place(w); return;
+      }
+      if (v > K.hardV) { w.lp = { ph: 'sq', t: 0, dur: .09, next: 'bounce', vz: .25 * v }; bodyT(w, 'scale(1.1,.8)'); }
+      else { puff(cx, cy, false); w.lp = { ph: 'sq', t: 0, dur: .06, next: 'idle' }; bodyT(w, 'scale(1.06,.9)'); }
+      place(w);
+    }
+    function landStep(w, dt) {
+      var L = w.lp; L.t += dt;
+      if (L.ph === 'sq') {
+        if (L.t < L.dur) return;
+        if (L.next === 'bounce') { w.bounced = true; w.vz = L.vz; w.z = .01; w.th = 0; w.om = 0; w.zf = (L.vz * L.vz) / (2 * K.grav); bodyT(w, ''); setState(w, 'fall'); w.el.classList.add('lifted'); }
+        else finishLand(w);
+      } else {
+        bodyT(w, Math.floor(L.t / .06) % 2 ? 'translateX(2px)' : 'translateX(-2px)');
+        if (L.t >= .4) finishLand(w);
+      }
+    }
+    function finishLand(w) { w.bounced = false; clearView(w); setState(w, 'idle'); w.wait = rnd(.8, 2); place(w); }
+
+    /* ---------- frame loop ---------- */
     function running() { return box && seen && !document.hidden && !reduced() && !root.hasAttribute('data-paused') && box.offsetParent && !box.closest('.org-on'); }
+    function step(w, dt) {
+      var f;
+      if (w.st === 'held') { heldStep(w, dt); return; }
+      if (w.st === 'fall' || w.st === 'land') { fallStep(w, dt); return; }
+      if (ACTST[w.st]) {
+        var a = w.a; if (!a) { setState(w, 'idle'); return; }
+        if (a.lead && a.lead !== w) return;   /* the partner is driven by the lead */
+        a.t += dt * 1000;
+        var done = a.kind === 'solo' ? updSolo(w, dt) : a.kind === 'pair' ? updPair(a, dt) : a.kind === 'sig' ? updSig(w) : updGossip(w);
+        if (done) {
+          var wasG = a.kind === 'gossip'; stopAct(w);
+          if (wasG) { JoeCam.release('smile'); w.wait = .2; plan(w, 'walk'); }
+        }
+        return;
+      }
+      if (w.st === 'chat') {
+        w.wait -= dt;
+        if (w.wait <= 0) { f = w.friend; release(w); setState(w, 'idle'); w.wait = rnd(.2, .8); if (f && f.st === 'chat') { f.friend = null; setState(f, 'idle'); f.wait = rnd(1.2, 2.6); } }
+        return;
+      }
+      if (w.st === 'idle') { if (!w.host) { w.wait -= dt; if (w.wait <= 0) decide(w); } return; }
+      /* walking */
+      if (w.gos) { w.gos.t += dt; if (w.gos.t > 30) { w.gos = null; spot(w); } }
+      if (w.friend && w.friend.st === 'walk') { release(w); spot(w); }
+      if (w.via) {   /* stepping around someone: walk to the side point first */
+        var vx = w.via.x - w.x, vy = w.via.y - w.y, vd = Math.hypot(vx, vy);
+        if (vd < 1.5) w.via = null;
+        else {
+          if (blockedBy(w, vx, vy, vd)) { w.via = null; w.blocked = 1.3; }
+          else { var vs = Math.min(vd, w.speed * dt); w.x += vx / vd * vs; w.y += vy / vd * vs; if (Math.abs(vx) > 1) face(w, vx); walkView(w, vx, vy); w.el.classList.add('walking'); place(w); return; }
+        }
+      }
+      var dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
+      if (d < 1.5) {
+        if (w.gos) { beginWhisper(w); return; }
+        f = w.friend;
+        if (f) {
+          if (w.pk) startPair(w, f);
+          else { setState(w, 'chat'); setState(f, 'chat'); f.friend = w; f.host = null; w.wait = f.wait = rnd(2.6, 5); face(w, f.x - w.x); face(f, w.x - f.x); }
+        } else { setState(w, 'idle'); w.wait = rnd(.8, 2.6); }
+        return;
+      }
+      var ob = blockedBy(w, dx, dy, d);
+      if (ob) {   /* someone is in the way: pause, then step around them; if that fails twice, choose somewhere else */
+        w.blocked += dt; w.el.classList.remove('walking');
+        if (w.blocked > 0.6 && w.detours < 2) {
+          var up = w.y > ob.y ? 1 : -1, vy2 = clampY(w, ob.y + up * (SY + 8));
+          if (Math.abs(vy2 - ob.y) < SY) vy2 = clampY(w, ob.y - up * (SY + 8));
+          var vx2 = clampX(w, w.x + (dx < 0 ? -1 : 1) * 30);
+          if (Math.abs(vy2 - ob.y) >= SY && !taken(w, vx2, vy2, w.friend)) { w.via = { x: vx2, y: vy2 }; w.detours++; w.blocked = 0; }
+        }
+        if (w.blocked > 1.4) { release(w); spot(w); w.blocked = 0; w.detours = 0; w.via = null; }
+        return;
+      }
+      w.blocked = 0; w.el.classList.add('walking');
+      var st = Math.min(d, w.speed * dt); w.x += dx / d * st; w.y += dy / d * st;
+      if (Math.abs(dx) > 1) face(w, dx);
+      walkView(w, dx, dy);
+      place(w);
+    }
+    function director(dt) {
+      gossipT -= dt;
+      if (gossipT <= 0) { var g2 = phone() ? K.gossipNPhone : K.gossipN; gossipT = startGossip() ? rnd(g2[0], g2[1]) : 6; }
+    }
     function frame(now) {
       raf = 0; if (!running()) return;
       var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
-      ws.forEach(function (w) {
-        if (w.st === 'chat') {
-          w.wait -= dt;
-          if (w.wait <= 0) { var f = w.friend; release(w); setState(w, 'idle'); w.wait = rnd(.2, .8); if (f && f.st === 'chat') { f.friend = null; setState(f, 'idle'); f.wait = rnd(1.2, 2.6); } }
-          return;
-        }
-        if (w.st === 'idle') { if (!w.host) { w.wait -= dt; if (w.wait <= 0) plan(w); } return; }
-        /* walking */
-        if (w.friend && w.friend.st === 'walk') { release(w); spot(w); }
-        if (w.via) {   /* stepping around someone: walk to the side point first */
-          var vx = w.via.x - w.x, vy = w.via.y - w.y, vd = Math.hypot(vx, vy);
-          if (vd < 1.5) w.via = null;
-          else {
-            if (blockedBy(w, vx, vy, vd)) { w.via = null; w.blocked = 1.3; }
-            else { var vs = Math.min(vd, w.speed * dt); w.x += vx / vd * vs; w.y += vy / vd * vs; if (Math.abs(vx) > 1) face(w, vx); w.el.classList.toggle('side', Math.abs(vx) > Math.abs(vy) * .7); w.el.classList.add('walking'); place(w); return; }
-          }
-        }
-        var dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy);
-        if (d < 1.5) {
-          var f = w.friend;
-          if (f) {
-            setState(w, 'chat'); setState(f, 'chat'); f.friend = w; f.host = null;
-            w.wait = f.wait = rnd(2.6, 5); face(w, f.x - w.x); face(f, w.x - f.x);
-          } else { setState(w, 'idle'); w.wait = rnd(.8, 2.6); }
-          return;
-        }
-        var ob = blockedBy(w, dx, dy, d);
-        if (ob) {   /* someone is in the way: pause, then step around them; if that fails twice, choose somewhere else */
-          w.blocked += dt; w.el.classList.remove('walking');
-          if (w.blocked > 0.6 && w.detours < 2) {
-            var up = w.y > ob.y ? 1 : -1, vy2 = clampY(w, ob.y + up * (SY + 8));
-            if (Math.abs(vy2 - ob.y) < SY) vy2 = clampY(w, ob.y - up * (SY + 8));
-            var vx2 = clampX(w, w.x + Math.sign(dx || 1) * 30);
-            if (Math.abs(vy2 - ob.y) >= SY && !taken(w, vx2, vy2, w.friend)) { w.via = { x: vx2, y: vy2 }; w.detours++; w.blocked = 0; }
-          }
-          if (w.blocked > 1.4) { release(w); spot(w); w.blocked = 0; w.detours = 0; w.via = null; }
-          return;
-        }
-        w.blocked = 0; w.el.classList.add('walking');
-        var step = Math.min(d, w.speed * dt); w.x += dx / d * step; w.y += dy / d * step;
-        if (Math.abs(dx) > 1) face(w, dx);
-        w.el.classList.toggle('side', Math.abs(dx) > Math.abs(dy) * .7);   /* profile when mostly sideways, front view when walking up/down */
-        place(w);
-      });
+      clearFx(); g = go;
+      director(dt);
+      ws.forEach(function (w) { step(w, dt); });
+      drawParticles(dt);
       raf = requestAnimationFrame(frame);
     }
-    function wake() { if (!raf && running()) { last = 0; raf = requestAnimationFrame(frame); } }
-    function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; ws.forEach(function (w) { w.el.classList.remove('walking', 'talking'); }); }
+    function wake() {
+      if (!raf && running()) { last = 0; ws.forEach(function (w) { w.el.classList.toggle('talking', w.st === 'chat'); }); raf = requestAnimationFrame(frame); JoeCam.start(); }
+    }
+    function stop() {   /* tab change, Run, hidden tab, resize, reduced motion: end every activity, clear effects, remove activity classes */
+      if (raf) cancelAnimationFrame(raf); raf = 0; drag = null;
+      ws.forEach(function (w) {
+        if (w.st === 'held' || w.st === 'fall' || w.st === 'land') dropNow(w);
+        else if (w.a) stopAct(w);
+        w.gos = null; w.el.classList.remove('walking', 'talking', 'acting', 'lifted', 'mir');
+      });
+      fxList.length = 0; cracks.length = 0; clearFx(); JoeCam.stop();
+    }
+    function sync() { if (running()) wake(); else stop(); }
+    function fitYard() {
+      if (!box) return;
+      if (root.classList.contains('fit-tab')) { var h = Math.max(170, fitSpace(box, 6)); box.style.height = h + 'px'; box.classList.toggle('compact', h < 330); }
+      else { box.style.height = ''; box.classList.remove('compact'); }
+      var w0 = ws[0]; if (w0 && w0.el.offsetWidth) { SX = w0.el.offsetWidth + 2; SY = Math.round(w0.el.offsetHeight * .85); GAP = SX + 4; }
+      ws.forEach(function (w) { w.bH = w.body.offsetHeight || 84; });
+      fxSize();
+    }
     function scatter() {
+      stop(); drag = null;
       var n = ws.length, cols = Math.max(2, Math.round(Math.sqrt(n * W() / Math.max(1, H())))), rows = Math.ceil(n / cols);
       ws.forEach(function (w, i) {
         var c = i % cols, r = Math.floor(i / cols);
         w.x = clampX(w, (c + .5) * W() / cols - bw(w) / 2 + rnd(-10, 10));
         w.y = clampY(w, (r + .5) * H() / rows - bh(w) / 2 + rnd(-8, 8));
-        w.friend = w.host = null; setState(w, 'idle'); w.wait = rnd(.3, 3); place(w);
+        w.friend = w.host = w.gos = w.a = null; w.pk = null; clearView(w); setState(w, 'idle'); w.wait = rnd(.3, 3); place(w);
       });
+      gossipT = rnd(K.gossip1[0], K.gossip1[1]);
+    }
+    function focus() {   /* what Joe's photo should watch: held/falling > gossip > signature > pair > solo > a random walker */
+      var best = null, pr = -1, rank = { held: 6, fall: 6, land: 6, gossip: 5, sig: 4, pair: 3, act: 2 };
+      ws.forEach(function (w) { var p = rank[w.st] || 0; if (p > pr) { pr = p; best = w; } });
+      if (pr <= 0) best = ws[Math.floor(Math.random() * ws.length)];
+      return best ? { el: best.el, drag: pr === 6 } : null;
     }
     function init(el) {
       stop(); box = el; if (!box) return;
-      ws = $$('.walker', box).map(function (b) { return { el: b, x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 36, st: 'idle', friend: null, host: null, blocked: 0 }; });
+      ws = $$('.walker', box).map(function (b) {
+        return { el: b, body: $('.wk-body', b), pose: $('.wk-pose', b), back: $('.wk-back', b), sh: $('.wk-shadow', b), key: b.dataset.key, id: b.dataset.agent,
+          x: 0, y: 0, tx: 0, ty: 0, wait: 0, speed: 36, st: 'idle', friend: null, host: null, blocked: 0, fr: {}, bk: 0, view: null, bt: '', a: null, gos: null, pk: null, z: 0, bH: 84, lastAct: '', lastSig: -1e9, fd: 1 };
+      });
+      cu = mkCanvas('yard-fx-under'); co = mkCanvas('yard-fx-over'); box.insertBefore(cu, box.firstChild); box.appendChild(co);
+      box.addEventListener('pointerdown', onDown); box.addEventListener('pointermove', onMove);
+      box.addEventListener('pointerup', onUp); box.addEventListener('pointercancel', onUp); box.addEventListener('lostpointercapture', onUp);
+      box.addEventListener('click', onClickCap, true);
       if (io) io.disconnect();
       if ('IntersectionObserver' in window) {
         io = new IntersectionObserver(function (es) { seen = es[0].isIntersecting; if (seen) { if (!box.dataset.placed) { box.dataset.placed = '1'; fitYard(); scatter(); } wake(); } else stop(); });
         io.observe(box);
-      } else { seen = true; scatter(); wake(); }
+      } else { seen = true; fitYard(); scatter(); wake(); }
     }
-    document.addEventListener('visibilitychange', wake);
+    document.addEventListener('visibilitychange', sync);
+    document.addEventListener('pointermove', function () { lastPtr = performance.now(); }, { passive: true });
+    document.addEventListener('pointerdown', function () { lastPtr = performance.now(); }, { passive: true });
     function refit() { if (box && box.offsetParent) { fitYard(); scatter(); wake(); } }
     window.addEventListener('resize', refit);
-    new MutationObserver(wake).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
-    return { init: init, wake: wake, stop: stop, refit: refit };
+    new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-paused'] });
+    try { reduceMQ.addEventListener('change', sync); } catch (e) { if (reduceMQ.addListener) reduceMQ.addListener(sync); }
+    return { init: init, wake: wake, stop: stop, refit: refit, focus: focus };
+  })();
+
+  /* Joe watches his team (Team tab photo only): two stacked layers crossfade. Watching is the default; he smiles now and then,
+     reacts to signature moves, listens to gossip, and follows an agent being carried. Hero photo, badge and favicon stay c.webp. */
+  var JoeCam = (function () {
+    var BASE = 'assets/face/', TEAM = 'assets/face/team/', A = null, B = null, active = null, wrap = null, baseSrc = '', cur = '', on = false, timer = 0, sTok = 0;
+    var TEAMF = ['listen-sl', 'listen-sr', 'surprised', 'laugh', 'shocked', 'worried', 'proud', 'amused', 'impressed', 'nervous', 'facepalm'];
+    var FALL = { nervous: 'worried', facepalm: 'shocked', impressed: 'amused', proud: 'smile', amused: 'smile', worried: 'c', shocked: 'c', surprised: 'c', laugh: 'smile', 'listen-sl': 'l', 'listen-sr': 'r' };
+    var REACT = { levi: 'impressed', kenshin: 'shocked', senku: 'worried', erina: 'amused', rohan: 'impressed', nami: 'nervous', kuroko: 'impressed', raphael: 'proud', jarvis: 'amused' };
+    var DIR_ANGLE = { l: 0, dl: 45, dr: 90, d: 135, r: 180, ul: -135, u: -90, ur: -45 };   /* same table as the cursor-follow Face: the files' left/right are mirrored */
+    var loaded = {}, bad = {}, pending = {}, holdUntil = 0, nextLook = 0, nextSmile = 0, lastReact = -1e9, lastSwap = 0, reactT = 0;
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function url(n) { return (TEAMF.indexOf(n) >= 0 ? TEAM : BASE) + n + '.webp'; }
+    function load(n) {
+      if (loaded[n]) return Promise.resolve(true); if (bad[n]) return Promise.resolve(false); if (pending[n]) return pending[n];
+      pending[n] = new Promise(function (res) { var im = new Image(); im.onload = function () { loaded[n] = true; res(true); }; im.onerror = function () { bad[n] = true; res(false); }; im.src = url(n); });
+      return pending[n];
+    }
+    function swap(src, ms) {
+      var next = active === A ? B : A, old = active; wrap.style.setProperty('--tjf', ms + 'ms'); next.src = src;
+      var go = function () { next.classList.add('on', 'top'); old.classList.remove('top'); active = next; setTimeout(function () { if (old !== active) old.classList.remove('on'); }, ms + 40); };
+      return (next.decode ? next.decode().catch(noop) : Promise.resolve()).then(go);
+    }
+    function show(n, ms) {
+      if (!A || n === cur) return; var tok = ++sTok;
+      load(n).then(function (ok) {
+        if (tok !== sTok || !on) return;
+        if (!ok) { if (FALL[n] && FALL[n] !== n) { cur = ''; show(FALL[n], ms); } return; }
+        cur = n; lastSwap = performance.now(); swap(url(n), ms == null ? 200 : ms);
+      });
+    }
+    function frameFor(f) {
+      var pr = A.getBoundingClientRect(), er = f.el.getBoundingClientRect(), dx = er.left + er.width / 2 - (pr.left + pr.width / 2), dy = er.top + er.height / 2 - (pr.top + pr.height / 2);
+      var dist = Math.hypot(dx, dy), an = Math.atan2(dy, dx) * 180 / Math.PI, best = 'c', bd = 999;
+      if (dist < 60) return 'c';
+      Object.keys(DIR_ANGLE).forEach(function (k) { var d = Math.abs(an - DIR_ANGLE[k]) % 360; d = d > 180 ? 360 - d : d; if (d < bd) { bd = d; best = k; } });
+      return best;
+    }
+    function tick() {
+      timer = 0; if (!on) return;
+      var now = performance.now();
+      if (now >= holdUntil) {
+        var f = Yard.focus();
+        if (f && f.drag) { if (now - lastSwap >= 250) show(frameFor(f), 120); }
+        else if (now >= nextSmile) { show('smile'); holdUntil = now + rnd(1500, 2500); nextSmile = holdUntil + rnd(12000, 25000); nextLook = holdUntil; }
+        else if (now >= nextLook && f) { show(frameFor(f)); nextLook = now + rnd(1200, 3000); }
+      }
+      timer = setTimeout(tick, 120);
+    }
+    function init(img) {
+      if (!img || !img.parentNode) return; A = img; active = A;
+      wrap = document.createElement('span'); wrap.className = 'tj-photo'; A.parentNode.insertBefore(wrap, A); wrap.appendChild(A);
+      A.classList.add('on'); B = document.createElement('img'); B.alt = ''; B.width = A.width; B.height = A.height; B.decoding = 'async'; wrap.appendChild(B);
+      baseSrc = A.getAttribute('src'); cur = '';
+    }
+    function start() { if (on || !A || reduced()) return; on = true; var n = performance.now(); nextSmile = n + rnd(12000, 25000); nextLook = n; holdUntil = 0; tick(); }
+    function stop() {
+      on = false; clearTimeout(timer); timer = 0; clearTimeout(reactT); ++sTok; holdUntil = 0;
+      if (A && wrap) { A.classList.add('on'); A.classList.remove('top'); B.classList.remove('on', 'top'); A.src = baseSrc; active = A; cur = ''; }   /* back to the photo that was there before */
+    }
+    function now() { return performance.now(); }
+    function hold(n, ms) { holdUntil = now() + ms; nextLook = holdUntil; show(n); }
+    return {
+      init: init, start: start, stop: stop,
+      rect: function () { return A ? A.getBoundingClientRect() : null; },
+      busy: function () { return on && now() < holdUntil; },
+      scene: function (n, ms) { if (on) hold(n, Math.max(ms, 1500)); },   /* gossip: forced expression, 1.5 s minimum */
+      release: function (n) { if (!on) return; if (n) hold(n, 1500); else holdUntil = 0; },
+      react: function (id) {   /* 0.4 s after a signature move starts; at most one reaction every 8 s; an overlapping move gets none */
+        if (!on || !REACT[id] || now() - lastReact < 8000 || now() < holdUntil) return;
+        lastReact = now(); clearTimeout(reactT);
+        reactT = setTimeout(function () { if (on) hold(REACT[id], rnd(1500, 3000)); }, 400);
+      },
+      facepalm: function () { if (!on || now() - lastReact < 8000) return; lastReact = now(); hold('facepalm', rnd(1800, 3000)); }
+    };
   })();
   window.addEventListener('resize', layoutOrg);
   document.addEventListener('jb-brain-count', renderOffClock);

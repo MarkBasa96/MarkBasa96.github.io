@@ -1136,7 +1136,7 @@ html.no-run .side-run { display: none !important; }
 }
 .walker {
   position: absolute; left: 0; top: 0; width: 72px; padding: 0; border: 0; background: none; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; color: var(--text); -webkit-tap-highlight-color: transparent; will-change: transform;
+  display: flex; flex-direction: column; align-items: center; color: var(--text); -webkit-tap-highlight-color: transparent; will-change: transform; touch-action: none;
 }
 .walker:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
 /* each sprite is drawn three times: the upper body, and the left and right leg, so the legs can step */
@@ -1159,6 +1159,38 @@ html.no-run .side-run { display: none !important; }
 .walker.side.walking .wk-side { animation: wk-sbob .23s ease-in-out infinite alternate; }
 .walker.side:not(.walking) .wk-s1 { opacity: 0; }
 .walker.side:not(.walking) .wk-s2 { opacity: 1; }
+/* back view (walking up the screen), same canvas rules as the side view; height is set from the file */
+.wk-back { display: none; position: absolute; left: 50%; bottom: 0; height: 100%; width: max-content; transform: translateX(-50%); }
+.walker.face-l .wk-back { transform: translateX(-50%); }
+.wk-back img { display: block; height: 100%; width: auto; max-width: none; }
+.wk-back .wk-b2 { position: absolute; left: 0; bottom: 0; opacity: 0; }
+.walker.back .wk-back { display: block; }
+.walker.back .wk-top, .walker.back .wk-leg { visibility: hidden; }
+.walker.back.walking .wk-b1 { animation: wk-f1 .46s infinite; }
+.walker.back.walking .wk-b2 { animation: wk-f2 .46s infinite; }
+.walker.back.walking .wk-back { animation: wk-sbob .23s ease-in-out infinite alternate; }
+/* pose frames (carry, activities, signature moves): drawn on a 288 px canvas, so 120 % of the body, bottom and centre anchored */
+.wk-pose { display: none; position: absolute; left: 50%; bottom: 0; height: 100%; width: 0; }
+.wk-body .wk-p { display: none; position: absolute; left: 0; bottom: 0; height: 100%; width: auto; max-width: none; transform: translateX(-50%); image-rendering: pixelated; }
+.wk-body .wk-p.on { display: block; }
+.walker.face-l .wk-body .wk-p.sd, .walker.mir .wk-body .wk-p:not(.sd) { transform: translateX(-50%) scaleX(-1); }
+.walker.posed .wk-pose { display: block; }
+.walker.posed .wk-top, .walker.posed .wk-leg { visibility: hidden; }
+.walker.posed .wk-side, .walker.posed .wk-back { display: none; }
+.walker.acting .wk-body, .walker.lifted .wk-body { transition: none; }
+.walker.lifted { cursor: grabbing; }
+.walker.lifted:not(.posed) .wk-l { animation: wk-dang var(--dg, .9s) ease-in-out infinite; }
+.walker.lifted:not(.posed) .wk-r { animation: wk-dang var(--dg, .9s) ease-in-out -.3s infinite; }
+@keyframes wk-dang { 0%, 100% { transform: translate(-4%, 0) rotate(-3deg); } 50% { transform: translate(4%, 0) rotate(3deg); } }
+.yard-fx { position: absolute; left: 0; top: 0; pointer-events: none; image-rendering: pixelated; }
+.yard-fx-under { z-index: 0; }
+.yard-fx-over { z-index: 9990; }
+/* Joe's photo on the Team tab: two stacked layers crossfade (JoeCam) */
+.tj-photo { position: relative; display: block; }
+.tj-photo img { opacity: 0; transition: transform .2s, opacity var(--tjf, .2s) linear; }
+.tj-photo img.on { opacity: 1; }
+.tj-photo img + img { position: absolute; left: 0; top: 0; }
+.tj-photo img.top { z-index: 2; }
 @keyframes wk-f1 { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes wk-f2 { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
 @keyframes wk-sbob { from { margin-bottom: 0; } to { margin-bottom: 2px; } }
@@ -1173,7 +1205,7 @@ html.no-run .side-run { display: none !important; }
 @keyframes wk-nod { 0%, 70%, 100% { transform: translateY(0); } 80% { transform: translateY(1.5px); } 90% { transform: translateY(0); } }
 .wk-shadow { display: block; width: 38px; height: 7px; margin-top: -4px; border-radius: 50%; background: rgb(0 0 0 / .16); }
 @media (max-width: 719px) { .yard { height: 380px; } .walker { width: 60px; } .wk-body { height: 70px; } .team-joe img { width: 96px; height: 96px; } }
-@media (prefers-reduced-motion: reduce) { .walker .wk-top, .walker .wk-leg, .walker .wk-side, .walker .wk-side img { animation: none !important; } .wk-body { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .walker .wk-top, .walker .wk-leg, .walker .wk-side, .walker .wk-side img, .walker .wk-back, .walker .wk-back img { animation: none !important; } .wk-body { transition: none; } }
 
 /* toolbox: billiard balls */
 .tools { display: block; }
