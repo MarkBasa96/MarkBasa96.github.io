@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-25",
+  "last_updated": "2026-11-26",
   "projects": [
     {
       "id": "gastos",
@@ -244,6 +244,25 @@
       "featured": true,
       "icon_img": "assets/apps/kimgenious.png",
       "updated": "2026-11"
+    },
+    {
+      "id": "mindminer-imposters",
+      "name": "Mind Miners Imposters",
+      "icon": "grid",
+      "group": "apps",
+      "one_liner": "Browser party game: miners finish team tasks while hidden fakers sabotage them.",
+      "status": "live",
+      "visibility": "public",
+      "url": "https://markbasa96.github.io/mindminer-imposters/",
+      "repo": "MarkBasa96/mindminer-imposters",
+      "tags": [
+        "Multiplayer",
+        "Browser game"
+      ],
+      "details": "A multiplayer game that runs in the browser. One player hosts and shares a 4 letter room code. Miners work through team tasks while hidden fakers tag them and dim the lamps, and everyone calls meetings and votes. The imposter round takes 4 to 10 players.",
+      "featured": true,
+      "updated": "2026-11",
+      "icon_img": "assets/apps/mindminer-imposters.png"
     },
     {
       "id": "job-applier",

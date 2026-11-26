@@ -1005,11 +1005,9 @@
 
   var Run = (function () {
     var SVGNS = 'http://www.w3.org/2000/svg', TRAVEL = 700;
-    var bar = $('#runbar'), rbCount = $('#rb-count'), rbLabel = $('#rb-label'), rbPlay = $('#rb-play'), rbSpeed = $('#rb-speed');
-    var runTabBtn = $('#btn-run-tab'), runTabLabel = $('#run-tab-label'), runBtn = $('#btn-run'), runLabel = $('#run-label'), runHint = $('#run-hint'), flowBtn = $('#btn-flow');
-    var layer = null, svg = null, chip = null, dot = null, hideT = 0, clearT = 0, redrawQ = 0;
-    var S = { state: 'idle', scope: 'page', steps: [], idx: -1, phase: 'dwell', t: 0, dwell: 4000, speed: 5, last: 0, raf: 0, wires: [], autoPaused: false };
-    var SPEEDS = [1, 2, 3, 4, 5];
+    var runTabBtn = $('#btn-run-tab'), runTabLabel = $('#run-tab-label'), runBtn = $('#btn-run'), runLabel = $('#run-label'), flowBtn = $('#btn-flow');
+    var layer = null, svg = null, chip = null, dot = null, hideT = 0, clearT = 0, redrawQ = 0, backT = 0, IDLE_BACK = 4000;
+    var S = { state: 'idle', scope: 'page', steps: [], idx: -1, phase: 'dwell', t: 0, dwell: 4000, speed: 5, last: 0, raf: 0, wires: [] };
 
     function visible(el) { var r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.closest('dialog:not([open])'); }
     function collect(scope) { return $$(scope === 'flow' ? '#flow [data-step]' : '[data-step]').filter(visible); }
@@ -1131,29 +1129,12 @@
       var on = active(), page = S.scope === 'page', isReduced = reduced();
       document.documentElement.classList.toggle('running', on || S.state === 'done');
       document.documentElement.classList.toggle('run-paused', S.state === 'paused');
-      if (bar) {
-        bar.hidden = !(on || S.state === 'done');
-        bar.classList.toggle('manual', isReduced);
-        if (S.state === 'done') { rbCount.textContent = S.steps.length + ' / ' + S.steps.length; rbLabel.textContent = 'Workflow complete · ' + S.steps.length + ' steps'; }
-        else if (on) {
-          rbCount.textContent = (S.idx + 1) + ' / ' + S.steps.length;
-          rbLabel.textContent = S.state === 'paused' && !isReduced ? 'Paused — Resume ▶' : (S.steps[S.idx] ? S.steps[S.idx].dataset.step : '');
-        }
-        var playing = S.state === 'running';
-        $('use', rbPlay).setAttribute('href', playing ? '#i-pause' : '#i-play');
-        rbPlay.setAttribute('aria-label', playing ? 'Pause' : 'Resume'); rbPlay.title = playing ? 'Pause (Space)' : 'Resume (Space)';
-        rbSpeed.textContent = S.speed + '×';
-        $('#rb-back').disabled = !on || S.idx <= 0; $('#rb-next').disabled = !on;
-      }
       var pageRun = on && page, flowRun = on && !page;
       if (isReduced) {
         setRunBtn(pageRun ? 'stop' : 'play', pageRun ? 'Stop' : 'Step through the page');
-        if (runHint) runHint.textContent = pageRun ? 'Next / Back in the bar below. Esc stops.' : 'Steps through every node on the page, one at a time';
         if (flowBtn) flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Step through this flow');
       } else {
         setRunBtn(pageRun ? 'stop' : 'play', pageRun ? 'Stop' : 'Run workflow');
-        if (runHint) { if (!pageRun) runHint.textContent = S.state === 'done' && page ? 'Done. That was the whole page.' : 'Walks every node on the page. Pause, skip or stop any time.';
-        else runHint.textContent = 'Step ' + (S.idx + 1) + ' of ' + S.steps.length + (S.speed !== 1 ? ' · ' + S.speed + '×' : ''); }
         if (flowBtn) flowBtn.innerHTML = ic(flowRun ? 'stop' : 'play') + (flowRun ? 'Stop' : 'Run this flow');
       }
     }
@@ -1178,12 +1159,12 @@
         var p = Math.min(1, S.t / TRAVEL); setWireProgress(S.idx, p);
         if (p >= 1) beginDwell();
       } else {
-        setBar(el(), S.t / S.dwell);
+        if (!reduced()) setBar(el(), S.t / S.dwell);
         if (S.t >= S.dwell) { completeStep(); return; }
       }
       S.raf = requestAnimationFrame(frame);
     }
-    function loop() { if (S.raf || S.state !== 'running' || reduced()) return; S.last = performance.now(); S.raf = requestAnimationFrame(frame); }
+    function loop() { if (S.raf || S.state !== 'running') return; S.last = performance.now(); S.raf = requestAnimationFrame(frame); }
     function beginDwell() {
       S.phase = 'dwell'; S.t = 0; S.dwell = dwellFor(el());
       setStat(el(), 'run', 'running…'); setBar(el(), 0);
@@ -1221,44 +1202,38 @@
     /* ----- controls ----- */
     function start(scope) {
       if (active()) stop(true);
-      clearTimeout(hideT); clearTimeout(clearT);
+      clearTimeout(hideT); clearTimeout(clearT); clearTimeout(backT);
       S.scope = scope; teamOrg(scope === 'page' && curTab === 'team'); S.steps = collect(scope);
       if (!S.steps.length) return;
       S.steps.forEach(clearNode);
-      S.state = 'running'; S.autoPaused = false; S.wires = []; listeners(true);
+      S.state = 'running'; S.wires = []; listeners(true);
       go(0);
     }
     function stop(silent) {
-      cancelAnimationFrame(S.raf); S.raf = 0; listeners(false);
+      cancelAnimationFrame(S.raf); S.raf = 0; clearTimeout(backT); listeners(false);
       S.steps.forEach(clearNode); dropLayer(); teamOrg(false);
       S.state = 'idle'; S.idx = -1; ui();
     }
-    function pause(auto) { if (S.state !== 'running') return; S.state = 'paused'; S.autoPaused = !!auto; cancelAnimationFrame(S.raf); S.raf = 0; ui(); }
+    function pause() { if (S.state !== 'running') return; S.state = 'paused'; cancelAnimationFrame(S.raf); S.raf = 0; ui(); }
     function resume() {
       if (S.state !== 'paused') return;
-      S.state = 'running'; S.autoPaused = false; if (el()) scrollToStep(el()); ui(); loop();
+      clearTimeout(backT); S.state = 'running'; if (el()) scrollToStep(el()); ui(); loop();
     }
-    function toggle() { if (S.state === 'running') pause(false); else if (S.state === 'paused') resume(); }
-    function next() {
-      if (!active()) return;
-      if (S.idx >= S.steps.length - 1) { markDone(S.idx, S.t / 1000); complete(); return; }
-      markDone(S.idx, S.t / 1000); go(S.idx + 1);
-    }
-    function back() { if (active()) go(Math.max(0, S.idx - 1)); }
-    function cycleSpeed() { S.speed = SPEEDS[(SPEEDS.indexOf(S.speed) + 1) % SPEEDS.length]; ui(); }
+    function toggle() { if (S.state === 'running') pause(); else if (S.state === 'paused') { resume(); } }
 
-    /* ----- auto-pause when the visitor takes over (never cancels) ----- */
+    /* ----- auto-pause when the visitor takes over; carries on by itself after a quiet moment ----- */
     var SCROLL_KEYS = { ArrowUp: 1, ArrowDown: 1, PageUp: 1, PageDown: 1, Home: 1, End: 1 };
-    function onUser(e) { if (S.state === 'running' && !reduced()) pause(true); }
+    function waitThenResume() { clearTimeout(backT); backT = setTimeout(function () { if (document.querySelector('dialog[open]') || document.hidden) waitThenResume(); else resume(); }, IDLE_BACK); }
+    function onUser() { if (S.state === 'running') { pause(); waitThenResume(); } else if (S.state === 'paused' && backT) waitThenResume(); }
     function onPointer(e) {
-      if (e.target.closest && e.target.closest('#runbar, #btn-run, #btn-run-tab, #btn-flow, .tab-run')) return;
+      if (e.target.closest && e.target.closest('#btn-run, #btn-run-tab, #btn-flow, .tab-run')) return;
       onUser();
     }
     function onKey(e) {
       var tag = (e.target.tagName || '').toLowerCase();
       if (e.key === 'Escape' && !document.querySelector('dialog[open]')) { stop(); return; }
       if ((e.key === ' ' || e.code === 'Space') && !e.ctrlKey && !e.metaKey && !e.altKey && !document.querySelector('dialog[open]') && tag !== 'input' && tag !== 'textarea' && tag !== 'button' && tag !== 'a' && tag !== 'select') {
-        if (!reduced()) { e.preventDefault(); toggle(); }
+        e.preventDefault(); clearTimeout(backT); backT = 0; toggle();   /* a Space pause stays until Space again */
         return;
       }
       if (SCROLL_KEYS[e.key] && tag !== 'input' && tag !== 'textarea') onUser();
@@ -1273,8 +1248,6 @@
     function pageToggle() { if (active() && S.scope === 'page') stop(); else start('page'); }
     if (runBtn) runBtn.addEventListener('click', pageToggle); $$('.tab-run').forEach(function (b) { b.addEventListener('click', pageToggle); }); if (runTabBtn) runTabBtn.addEventListener('click', pageToggle);
     if (flowBtn) flowBtn.addEventListener('click', function () { if (active() && S.scope === 'flow') stop(); else start('flow'); });
-    rbPlay.addEventListener('click', toggle); $('#rb-next').addEventListener('click', next); $('#rb-back').addEventListener('click', back);
-    $('#rb-stop').addEventListener('click', function () { stop(); }); rbSpeed.addEventListener('click', cycleSpeed);
     window.addEventListener('resize', queueRedraw);
     if ('ResizeObserver' in window) new ResizeObserver(queueRedraw).observe(document.body);
     if (reduceMQ.addEventListener) reduceMQ.addEventListener('change', function () { stop(); });
@@ -1650,7 +1623,7 @@
 
   /* ---------- click feel: soft synthesized sounds + a small press-pop ---------- */
   var Feel = (function () {
-    var ctx = null, on = true, SEL = '.btn, .icon-btn, .tile, .live-item, .toplinks a, .toplinks .tl-act, .rb-b, .chip, .card-btn, .bulb, .xbtn, .pal-item, .pause, .tag.btn, .org-more, .orgn';
+    var ctx = null, on = true, SEL = '.btn, .icon-btn, .tile, .live-item, .toplinks a, .toplinks .tl-act, .chip, .card-btn, .bulb, .xbtn, .pal-item, .pause, .tag.btn, .org-more, .orgn';
     try { on = localStorage.getItem('jb-sound') !== 'off'; } catch (e) {}
     function ensure() {
       if (!ctx) {

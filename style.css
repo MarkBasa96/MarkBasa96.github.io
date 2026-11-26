@@ -220,7 +220,6 @@ html[data-mode="dark"] .ic-moon { display: none; }
 .stats b { display: block; font: 500 1.15rem/1.2 var(--mono); letter-spacing: -.02em; }
 .stats span { display: block; color: var(--muted); font-size: .8125rem; line-height: 1.35; margin-top: 2px; }
 .run-row { grid-area: run; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.run-hint { color: var(--muted); font-size: 11.5px; }
 .pill { display: inline-flex; align-items: center; gap: 8px; font-size: .8125rem; line-height: 1.3; padding: 6px 12px; border: 1px solid var(--line); background: var(--card); border-radius: 999px; }
 .loc { color: var(--muted); font-size: .8125rem; }
 #n-hero { max-width: none; box-shadow: none; }
@@ -753,30 +752,6 @@ html.run-paused .spin { animation-play-state: paused; }
 .rchip { position: absolute; transform: translate(-50%, -50%); padding: 3px 9px; border-radius: 999px; background: var(--card); border: 1px solid var(--ok); color: var(--ok-ink); font-size: 11px; line-height: 1.3; white-space: nowrap; }
 .rchip[hidden] { display: none; }
 
-.runbar {
-  position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; width: min(640px, calc(100vw - 24px));
-  display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-lg);
-}
-.runbar[hidden] { display: none; }
-.rb-info { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 10px; }
-.rb-count { flex: none; font-size: 12px; color: var(--accent-ink); font-weight: 500; }
-.rb-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .875rem; }
-.rb-btns { flex: none; display: flex; align-items: center; gap: 4px; }
-.rb-b { display: inline-grid; place-items: center; min-width: 38px; height: 38px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); cursor: pointer; color: var(--text); transition: transform .12s, border-color .12s; }
-.rb-b:hover:not(:disabled) { border-color: var(--wire); transform: translateY(-1px); }
-.rb-b:active:not(:disabled) { transform: scale(.96); }
-.rb-b:disabled { opacity: .4; cursor: default; }
-.rb-play { background: var(--text); color: var(--canvas); border-color: var(--text); }
-.rb-speed { font-size: 12px; min-width: 46px; }
-.runbar.manual .rb-play { display: none; }
-@media (max-width: 719px) {
-  .runbar { bottom: calc(76px + env(safe-area-inset-bottom)); flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 10px; }
-  .rb-btns { justify-content: space-between; }
-  .rb-btns .rb-b { flex: 1; }
-}
-html.running .pause { bottom: 82px; }
-@media (max-width: 719px) { html.running .pause { bottom: 190px; } html.running .toast { bottom: 190px; } }
-@media (min-width: 720px) { html.running .toast { bottom: 90px; } }
 
 /* ================= team org chart ================= */
 .org { position: relative; display: grid; gap: 48px; padding: 6px 0 4px; container: org / inline-size; }
@@ -919,7 +894,6 @@ html.running .pause { bottom: 82px; }
   main, .footer { margin-left: var(--side); width: auto; }
   .footer { max-width: none; padding-inline: max(var(--g), 24px); }
   .pause { left: calc(var(--side) + 16px); }
-  .runbar { left: calc(50% + var(--side) / 2); }
   html { scroll-padding-top: 24px; }
 }
 @media (min-width: 960px) and (max-width: 1239px) { .hero { gap: 32px; } }
@@ -1433,6 +1407,8 @@ html.no-run .side-run { display: none !important; }
 .livestrip .live-item small { display: none; }
 .livestrip .live-item .pic, .livestrip .live-item .pimg { width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 6px 14px -6px rgb(0 0 0 / .35); }
 .livestrip .live-item b { font-size: .8rem; font-weight: 500; }
+/* 9 or 10 apps: two even rows of 5 instead of 8 + 1-2 */
+.livestrip:has(> .live-item:nth-child(9)):not(:has(> .live-item:nth-child(11))) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 @media (max-width: 959px) {
   .livestrip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 6px; }
   .livestrip .live-item .pic, .livestrip .live-item .pimg { width: 54px; height: 54px; border-radius: 14px; }
@@ -1531,7 +1507,7 @@ html.modal-lock, html.modal-lock body { overflow: hidden; overscroll-behavior: n
   animation: app-float 4.6s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -.7s); }
 .livestrip .live-item:nth-child(1) .app3d { --i: 0 } .livestrip .live-item:nth-child(2) .app3d { --i: 1 } .livestrip .live-item:nth-child(3) .app3d { --i: 2 }
 .livestrip .live-item:nth-child(4) .app3d { --i: 3 } .livestrip .live-item:nth-child(5) .app3d { --i: 4 } .livestrip .live-item:nth-child(6) .app3d { --i: 5 }
-.livestrip .live-item:nth-child(7) .app3d { --i: 6 } .livestrip .live-item:nth-child(8) .app3d { --i: 7 } .livestrip .live-item:nth-child(9) .app3d { --i: 8 }
+.livestrip .live-item:nth-child(7) .app3d { --i: 6 } .livestrip .live-item:nth-child(8) .app3d { --i: 7 } .livestrip .live-item:nth-child(9) .app3d { --i: 8 } .livestrip .live-item:nth-child(10) .app3d { --i: 9 }
 .livestrip .live-item .pic, .livestrip .live-item .pimg { box-shadow: 0 14px 18px -10px rgb(0 0 0 / .55), inset 0 -3px 6px rgb(0 0 0 / .18); }
 .livestrip .app3d::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
   background: linear-gradient(155deg, rgb(255 255 255 / .55) 0%, rgb(255 255 255 / .12) 32%, transparent 50%, rgb(0 0 0 / .14) 100%); mix-blend-mode: soft-light; }

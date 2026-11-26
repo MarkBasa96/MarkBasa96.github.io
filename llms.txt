@@ -26,6 +26,7 @@ Every job goes through the same five steps: map the process, build the smallest 
 - [Second Brain Starter](https://github.com/MarkBasa96/second-brain-starter): Build an Obsidian second brain your AI can remember, with a living 3D brain graph.
 - [Ask Her Out](https://ask-her-out-orpin-psi.vercel.app): Playful page that asks someone on a date; the No button never gives up.
 - [KimGenious](https://kimgenious.vercel.app): Classroom quiz and game maker built for a teacher, ten game modes.
+- [Mind Miners Imposters](https://markbasa96.github.io/mindminer-imposters/): Browser party game: miners finish team tasks while hidden fakers sabotage them.
 
 ## Hire him
 - Book a 30-minute intro call (Google Meet): https://calendar.google.com/calendar/appointments/schedules/AcZssZ0wBgkxoKQ36u0OIhRdIko0jJ1gWZiaR3CDmHuc2I2jw6BOSonihBfe0wbSD_92n2d9pPkH1HA7
